@@ -1,0 +1,78 @@
+import java.util.concurrent.*;
+
+public class NamedReusableThreadPoolWithExecutor {
+
+    private static final int TASK_COUNT = 10;
+    private static ExecutorService executorService;
+
+    public static void main(String[] args) throws InterruptedException {
+        int initialThreadPoolSize = 5; // 初始线程池大小
+        executorService = createThreadPool(initialThreadPoolSize, new NamedThreadFactory("MyPool"));
+
+        for (int i = 0; i < 3; i++) { // 重复三次步骤2和3
+            System.out.println("Round: " + i);
+            adjustThreadPoolSize(i); // 动态调整线程池大小
+            CountDownLatch latch = new CountDownLatch(TASK_COUNT);
+
+            executeTasks(latch);
+            latch.await(); // 等待所有任务完成
+            System.out.println("All tasks completed in round: " + i);
+        }
+
+        executorService.shutdown(); // 在所有轮次结束后关闭线程池
+    }
+
+    private static void adjustThreadPoolSize(int round) {
+        int newSize = calculateThreadPoolSize(round);
+        ((ThreadPoolExecutor) executorService).setCorePoolSize(newSize);
+        ((ThreadPoolExecutor) executorService).setMaximumPoolSize(newSize * 2);
+    }
+
+    private static int calculateThreadPoolSize(int round) {
+        // 这里简单地返回当前轮数加1作为线程池大小，实际应用中可以根据需要动态计算
+        return round + 1;
+    }
+
+    private static ExecutorService createThreadPool(int corePoolSize, ThreadFactory threadFactory) {
+        return new ThreadPoolExecutor(
+            corePoolSize, // 核心线程数
+            corePoolSize * 2, // 最大线程数
+            60L, TimeUnit.SECONDS, // 空闲线程存活时间
+            new LinkedBlockingQueue<>(100), // 工作队列
+            threadFactory, // 自定义线程工厂
+            new ThreadPoolExecutor.CallerRunsPolicy() // 拒绝策略
+        );
+    }
+
+    private static void executeTasks(CountDownLatch latch) {
+        for (int j = 0; j < TASK_COUNT; j++) {
+            int taskId = j;
+            executorService.execute(() -> {
+                try {
+                    Thread.sleep(1000 * (taskId + 1)); // 模拟耗时操作，每个任务耗时不同
+                    System.out.println(Thread.currentThread().getName() + ": Task " + taskId + " is done");
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.err.println(Thread.currentThread().getName() + ": Task interrupted");
+                } finally {
+                    latch.countDown(); // 任务完成，计数器减一
+                }
+            });
+        }
+    }
+
+    static class NamedThreadFactory implements ThreadFactory {
+        private final String namePrefix;
+        private int threadId = 0;
+
+        public NamedThreadFactory(String namePrefix) {
+            this.namePrefix = namePrefix;
+        }
+
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r, namePrefix + "-thread-" + threadId++);
+            return t;
+        }
+    }
+}
