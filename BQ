@@ -1,0 +1,30 @@
+-- Create a temporary table to store the latest records from raw_tableA
+CREATE TEMPORARY TABLE temp_latest_records AS (
+  SELECT 
+    id,
+    column1,
+    column2,
+    ...
+    ROW_NUMBER() OVER(PARTITION BY id ORDER BY timestamp_column DESC) AS row_num
+  FROM project.dataset.raw_tableA
+);
+
+-- Merge data from the temporary table into conformed_tableA
+MERGE project.dataset.conformed_tableA AS t
+USING temp_latest_records AS s
+ON t.id = s.id AND s.row_num = 1
+WHEN MATCHED THEN
+  UPDATE SET t.column1 = s.column1, t.column2 = s.column2, ...
+WHEN NOT MATCHED THEN
+  INSERT (id, column1, column2, ...)
+  VALUES (s.id, s.column1, s.column2, ...)
+
+-- Merge data from the temporary table into conformed_tableT
+MERGE project.dataset.conformed_tableT AS t
+USING temp_latest_records AS s
+ON t.id = s.id AND s.row_num = 1
+WHEN MATCHED THEN
+  UPDATE SET t.column1 = s.column1, t.column2 = s.column2, ...
+WHEN NOT MATCHED THEN
+  INSERT (id, column1, column2, ...)
+  VALUES (s.id, s.column1, s.column2, ...)
