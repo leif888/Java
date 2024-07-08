@@ -1,0 +1,19 @@
+SELECT 
+    DATEPART(YEAR, TimestampField) AS Year,
+    DATEPART(MONTH, TimestampField) AS Month,
+    DATEPART(DAY, TimestampField) AS Day,
+    DATEPART(HOUR, TimestampField) AS Hour,
+    RIGHT('0' + CAST((DATEPART(MINUTE, TimestampField) / 10) * 10 AS VARCHAR(2)), 2) AS MinuteSegment,
+    COUNT(*) AS DataCount
+FROM 
+    YourTable
+WHERE 
+    CAST(TimestampField AS DATE) = '2023-01-01'
+GROUP BY 
+    DATEPART(YEAR, TimestampField),
+    DATEPART(MONTH, TimestampField),
+    DATEPART(DAY, TimestampField),
+    DATEPART(HOUR, TimestampField),
+    (DATEPART(MINUTE, TimestampField) / 10) * 10
+ORDER BY 
+    Year, Month, Day, Hour, MinuteSegment;
