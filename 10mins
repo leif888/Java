@@ -17,3 +17,37 @@ GROUP BY
     (DATEPART(MINUTE, TimestampField) / 10) * 10
 ORDER BY 
     Year, Month, Day, Hour, MinuteSegment;
+========================
+WITH TimeIntervals AS (
+    SELECT 
+        '2023-01-01' AS DateValue,
+        ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS RowNum
+    FROM 
+        master..spt_values v1, master..spt_values v2
+    WHERE 
+        v1.type = 'P' AND v2.type = 'P'
+        AND ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) <= 24 * 6 -- 24 hours * 6 intervals per hour
+),
+FormattedTimeIntervals AS (
+    SELECT 
+        DateValue,
+        DATEADD(minute, RowNum * 10, DateValue) AS IntervalStart,
+        DATEADD(minute, RowNum * 10 + 9, DateValue) AS IntervalEnd
+    FROM 
+        TimeIntervals
+)
+SELECT 
+    fti.DateValue,
+    DATEPART(HOUR, fti.IntervalStart) AS Hour,
+    RIGHT('0' + CAST(DATEPART(MINUTE, fti.IntervalStart) AS VARCHAR(2))) AS MinuteSegment,
+    COALESCE(COUNT(yt.TimestampField), 0) AS DataCount
+FROM 
+    FormattedTimeIntervals fti
+LEFT JOIN 
+    YourTable yt ON yt.TimestampField BETWEEN fti.IntervalStart AND fti.IntervalEnd
+WHERE 
+    fti.DateValue = '2023-01-01'
+GROUP BY 
+    fti.DateValue, fti.IntervalStart
+ORDER BY 
+    fti.DateValue, Hour, MinuteSegment;
