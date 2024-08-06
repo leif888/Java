@@ -1,3 +1,8 @@
+Concurrent MERGE Operations:
+When using MERGE, you can encounter concurrency issues if multiple processes try to update the same row. If two MERGE statements try to update the same row, the last one to complete will overwrite the changes made by the first one.
+BigQuery does not raise a specific concurrency error for MERGE; the conflict is resolved by the order in which the statements are executed.
+
+
 -- Create a temporary table to store the latest records from raw_tableA
 CREATE TEMPORARY TABLE temp_latest_records AS (
   SELECT 
