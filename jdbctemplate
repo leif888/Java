@@ -1,0 +1,80 @@
+import org.springframework.stereotype.Service;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Service
+public class IdDataService {
+
+    private final ConcurrentHashMap<String, Integer> idDataMap = new ConcurrentHashMap<>();
+
+    // Method to initialize the ID data from the database
+    public void initializeIdsFromDatabase() {
+        // Load IDs from the database and populate the map
+        // Example: loadIdsFromDatabase() should be implemented to fetch IDs from the database
+        idDataMap.putAll(loadIdsFromDatabase());
+    }
+
+    // Method to get an ID by key
+    public Integer getId(String key) {
+        return idDataMap.get(key);
+    }
+
+    // Method to update an ID by key
+    public void updateId(String key, Integer id) {
+        idDataMap.put(key, id);
+    }
+
+    // Method to load IDs from the database (implement this method based on your database schema)
+    private ConcurrentHashMap<String, Integer> loadIdsFromDatabase() {
+        // Implementation to fetch IDs from the database and return them as a map
+        // This is just a placeholder, replace it with actual database calls
+        ConcurrentHashMap<String, Integer> ids = new ConcurrentHashMap<>();
+        ids.put("key1", 1);
+        ids.put("key2", 2);
+        return ids;
+    }
+}
+=================
+import org.springframework.stereotype.Service;
+import javax.annotation.PostConstruct;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Service
+public class IdDataService {
+
+    private final ConcurrentHashMap<String, Integer> idDataMap = new ConcurrentHashMap<>();
+
+    @PostConstruct
+    public void initializeIdsFromDatabase() {
+        // Load IDs from the database and populate the map
+        idDataMap.putAll(loadIdsFromDatabase());
+    }
+
+    // ... other methods ...
+}
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import javax.annotation.PostConstruct;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Service
+public class IdDataService {
+
+    private final ConcurrentHashMap<String, Integer> idDataMap = new ConcurrentHashMap<>();
+
+    @PostConstruct
+    public void initializeIdsFromDatabase() {
+        idDataMap.putAll(loadIdsFromDatabase());
+    }
+
+    @Cacheable(value = "idData", key = "#key")
+    public Integer getId(String key) {
+        return idDataMap.get(key);
+    }
+
+    public void updateId(String key, Integer id) {
+        idDataMap.put(key, id);
+    }
+
+    // ... other methods ...
+}
