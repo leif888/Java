@@ -108,3 +108,60 @@ public class ApplicationRunner implements CommandLineRunner {
         System.out.println("IDs for key1: " + idsForKey1);
     }
 }
+
+=================
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Service;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+@Service
+public class EmployeeService {
+
+    private final JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public EmployeeService(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    // ... (Other methods)
+
+    public List<Integer> findIdsByNames(List<String> names) {
+        return jdbcTemplate.query(
+                "SELECT id FROM employees WHERE name IN (" + generatePlaceholders(names.size()) + ")",
+                new Object[names.size()],
+                names.toArray(),
+                new IdRowMapper()
+        );
+    }
+
+    private String generatePlaceholders(int size) {
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < size; i++) {
+            placeholders.append("?");
+            if (i < size - 1) {
+                placeholders.append(", ");
+            }
+        }
+        return placeholders.toString();
+    }
+
+    private static class IdRowMapper implements RowMapper<Integer> {
+        @Override
+        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return rs.getInt("id");
+        }
+    }
+
+    // ... (Other methods)
+}
