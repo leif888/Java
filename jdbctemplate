@@ -78,3 +78,33 @@ public class IdDataService {
 
     // ... other methods ...
 }
+
+===================
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ApplicationRunner implements CommandLineRunner {
+
+    private final IdDataService idDataService;
+
+    @Autowired
+    public ApplicationRunner(IdDataService idDataService) {
+        this.idDataService = idDataService;
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        idDataService.initializeIdsFromDatabase();
+
+        // Add and remove IDs
+        idDataService.addId("key1", "newId1");
+        idDataService.addId("key1", "newId2");
+        idDataService.removeId("key1", "id2");
+
+        // Retrieve IDs
+        Set<String> idsForKey1 = idDataService.getIds("key1");
+        System.out.println("IDs for key1: " + idsForKey1);
+    }
+}
