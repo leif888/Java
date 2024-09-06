@@ -1,0 +1,16 @@
+public static void main(String[] args) {
+        SpringApplication application = new SpringApplication(DemoApplication.class);
+        application.addInitializers(new ApplicationContextInitializer<ConfigurableApplicationContext>() {
+            @Override
+            public void initialize(ConfigurableApplicationContext applicationContext) {
+                ConfigurableApplicationContext context = applicationContext;
+                String[] argsCopy = args.clone();
+                boolean enableMyService = Arrays.asList(argsCopy).contains("--tblmatch=true");
+
+                if (!enableMyService) {
+                    context.getBeanFactory().registerSingleton("myService", new MyService());
+                }
+            }
+        });
+        application.run(args);
+    }
