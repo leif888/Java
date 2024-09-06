@@ -14,3 +14,14 @@ public static void main(String[] args) {
         });
         application.run(args);
     }
+
+@Bean
+    public CommandLineRunner commandLineRunner(MyService myService) {
+        return args -> {
+            if (myService != null) {
+                myService.doSomething();
+            } else {
+                System.out.println("MyService is not enabled.");
+            }
+        };
+    }
