@@ -1,0 +1,25 @@
+WITH IDRanges AS (
+    -- Generate the ranges from 0 to 1000000 in steps of 100000
+    SELECT 
+        StartRange = 0,
+        EndRange = 100000
+    UNION ALL
+    SELECT 
+        StartRange = EndRange + 1,
+        EndRange = CASE WHEN EndRange + 100000 <= 1000000 THEN EndRange + 100000 ELSE 1000000 END
+    FROM IDRanges
+    WHERE EndRange < 1000000
+)
+SELECT 
+    StartRange,
+    EndRange,
+    COUNT(t.ID) AS CountInRange
+FROM 
+    IDRanges r
+CROSS APPLY (
+    SELECT ID
+    FROM YourTable
+    WHERE ID BETWEEN r.StartRange AND r.EndRange
+) t
+GROUP BY 
+    StartRange, EndRange;
