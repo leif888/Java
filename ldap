@@ -1,27 +1,33 @@
-import org.springframework.ldap.core.ContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
+import java.util.Hashtable;
 
 public class LdapTest {
 
     public static void main(String[] args) {
         // LDAP server details
-        final String url = "ldap://ldap.example.com:389";
+        final String url = "ldaps://ldap.example.com:636";
         final String serviceAccountDn = "cn=admin,dc=example,dc=com";
         final String password = "adminPassword";
 
         try {
             // Create a ContextSource instance
-            ContextSource contextSource = new LdapContextSource();
+            LdapContextSource contextSource = new LdapContextSource();
             contextSource.setUrl(url);
             contextSource.setUserDn(serviceAccountDn);
             contextSource.setPassword(password);
-            contextSource.afterPropertiesSet();
-
+            
+            // Set SSL/TLS properties
+            Hashtable<String, String> env = new Hashtable<>();
+            env.put(Context.SECURITY_PROTOCOL, "ssl");
+            env.put(Context.PROVIDER_URL, url);
+            env.put(Context.SECURITY_PRINCIPAL, serviceAccountDn);
+            env.put(Context.SECURITY_CREDENTIALS, password);
+            
             // Attempt to bind
-            DirContext dirContext = new InitialDirContext(contextSource.getEnvironment());
+            DirContext dirContext = new InitialDirContext(env);
             System.out.println("Successfully bound to the LDAP server using service account.");
         } catch (NamingException e) {
             System.err.println("Failed to bind to the LDAP server using service account: " + e.getMessage());
