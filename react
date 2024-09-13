@@ -1,6 +1,6 @@
 npm install -g create-react-app
 ----------------------
-create-react-app rag-query-app
+npx create-react-app rag-query-app
 cd rag-query-app
 --------------------
 
