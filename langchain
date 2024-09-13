@@ -1,0 +1,61 @@
+pip install pandas openpyxl langchain chromadb tiktoken sentence_transformers
+-------------------------
+pandas: 用于读取Excel文件。
+openpyxl: 支持读取.xlsx文件。
+langchain: 提供了链式处理能力。
+chromadb: 一个简单的向量数据库。
+tiktoken: 用于Tokenization。
+sentence_transformers: 用于文本嵌入。
+-------------------------
+import pandas as pd
+from langchain.embeddings import SentenceTransformerEmbeddings
+from langchain.vectorstores import Chroma
+from chromadb.config import Settings
+from sentence_transformers import SentenceTransformer
+
+# 读取Excel文件
+def read_excel(file_path):
+    df = pd.read_excel(file_path)  # 假设Excel的第一列包含了文本内容
+    return df['column_name'].tolist()  # 替换'column_name'为你实际的列名
+
+# 文本嵌入
+def embed_texts(texts):
+    model = SentenceTransformer('all-MiniLM-L6-v2')  # 使用MiniLM模型
+    embeddings = model.encode(texts, convert_to_tensor=True)
+    return embeddings
+
+# 存储到ChromaDB
+def store_in_chromadb(embeddings, texts):
+    persist_directory = 'db'  # 存储目录
+    embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+
+    vectordb = Chroma.from_texts(
+        texts=texts,
+        embedding=embedding_function,
+        persist_directory=persist_directory
+    )
+    vectordb.persist()
+    vectordb = None  # 允许垃圾回收
+
+if __name__ == "__main__":
+    file_path = 'path/to/your/excel_file.xlsx'  # Excel文件路径
+    texts = read_excel(file_path)
+    embeddings = embed_texts(texts)
+    store_in_chromadb(embeddings, texts)
+
+    print("Data has been successfully stored in the vector database.")
+---------------------
+说明
+读取Excel文件：
+使用pd.read_excel()读取Excel文件，并假设第一列包含了你想要处理的文本内容。
+根据实际情况修改列名。
+文本嵌入：
+使用sentence_transformers中的SentenceTransformer模型来生成文本的向量表示。
+存储到ChromaDB：
+使用LangChain的Chroma.from_texts()方法将文本及其对应的嵌入存储到ChromaDB中。
+指定存储目录persist_directory，并将向量数据库持久化。
+-------------------
+注意事项
+确保Excel文件的第一列包含了你想要处理的文本内容。
+根据实际需要调整列名和文件路径。
+如果你的Excel文件包含多列文本数据，可以根据需要进行合并或分别处理每一列。
