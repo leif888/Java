@@ -1,4 +1,5 @@
 from langchain.document_loaders import UnstructuredFileLoader
+from langchain.text_splitter import CharacterTextSplitter
 import os
 
 # Define the path to your Word document
@@ -8,13 +9,19 @@ word_document_path = r"C:\path\to\your\document.docx"
 loader = UnstructuredFileLoader(word_document_path)
 documents = loader.load()
 
-# Print the documents' content and their sizes
-print(f"Number of documents: {len(documents)}")
-for i, doc in enumerate(documents):
-    print(f"Document {i+1}:")
-    print(f"Page Content: {doc.page_content}")
-    print(f"Metadata: {doc.metadata}")
-    print(f"Size: {len(doc.page_content.encode('utf-8'))} bytes")
-    if len(doc.page_content.encode('utf-8')) == 110624:
-        print("This is the chunk with size 110624.")
+# Initialize the CharacterTextSplitter with the desired chunk size and overlap
+text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+
+# Split the document into chunks
+chunks = []
+for document in documents:
+    chunks.extend(text_splitter.split_text(document.page_content))
+
+# Print the chunks and their sizes
+for i, chunk in enumerate(chunks):
+    print(f"Chunk {i+1}:")
+    print(f"Content: {chunk}")
+    print(f"Size: {len(chunk.encode('utf-8'))} bytes")
+    if len(chunk.encode('utf-8')) > 1000:
+        print("This chunk is larger than the specified size.")
     print("\n")
