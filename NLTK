@@ -1,0 +1,20 @@
+from langchain.document_loaders import UnstructuredFileLoader
+import os
+
+# Define the path to your Word document
+word_document_path = r"C:\path\to\your\document.docx"
+
+# Load the Word document
+loader = UnstructuredFileLoader(word_document_path)
+documents = loader.load()
+
+# Print the documents' content and their sizes
+print(f"Number of documents: {len(documents)}")
+for i, doc in enumerate(documents):
+    print(f"Document {i+1}:")
+    print(f"Page Content: {doc.page_content}")
+    print(f"Metadata: {doc.metadata}")
+    print(f"Size: {len(doc.page_content.encode('utf-8'))} bytes")
+    if len(doc.page_content.encode('utf-8')) == 110624:
+        print("This is the chunk with size 110624.")
+    print("\n")
