@@ -1,0 +1,67 @@
+import pandas as pd
+from sentence_transformers import SentenceTransformer
+import faiss
+import numpy as np
+
+# Load the Excel file
+df = pd.read_excel('your_data.xlsx')
+
+# Initialize the sentence transformer model
+model = SentenceTransformer('your_embedding_model')  # Choose an appropriate model
+
+# Convert the text data to embeddings
+texts = df['your_column_name'].tolist()  # Replace 'your_column_name' with the actual column name
+embeddings = model.encode(texts)
+
+# Chunk the text if needed
+def chunk_text(text, chunk_size=512):
+    """Split text into chunks of a specified size."""
+    chunks = []
+    for i in range(0, len(text), chunk_size):
+        chunks.append(text[i:i + chunk_size])
+    return chunks
+
+chunked_texts = [chunk_text(text, chunk_size=512) for text in texts]
+flat_texts = [chunk for sublist in chunked_texts for chunk in sublist]
+chunked_embeddings = model.encode(flat_texts)
+
+# Get the dimensionality of the embeddings
+dimension = chunked_embeddings.shape[1]
+
+# Initialize the FAISS index
+index = faiss.IndexFlatL2(dimension)  # L2 distance metric
+
+# Add the embeddings to the index
+index.add(chunked_embeddings)
+----------------------------
+
+# Example query
+query = "What is the weather like today?"
+
+# Encode the query into an embedding
+query_embedding = model.encode([query])[0]
+
+# Search FAISS for the top-k most similar embeddings
+k = 5  # Define the top-k value
+D, I = index.search(np.array([query_embedding]), k)
+
+# Retrieve the actual data based on the indices
+similar_texts = [flat_texts[i] for i in I[0]]
+
+# Combine the similar texts into a single string for LLM input
+context = ' '.join(similar_texts)
+
+---------------
+# Example function to generate a response from the LLM
+def generate_response(llm, context, query):
+    # Construct the prompt for the LLM
+    prompt = f"Context: {context}\nQuestion: {query}\nAnswer:"
+    
+    # Generate the response
+    response = llm.generate(prompt)
+    
+    return response
+
+# Example usage
+llm_response = generate_response(llm, context, query)
+print("LLM Response:", llm_response)
