@@ -1,3 +1,18 @@
+# Initialize the sentence transformer model
+model = SentenceTransformer('all-MiniLM-L6-v2')  # Choose an appropriate model
+
+# Convert the text data to embeddings
+embeddings = model.encode(texts)
+
+# Create the FAISS index
+db = FAISS.from_texts(texts=texts, embedding=model.encode)
+
+# Example query
+query = "What is the weather like today?"
+
+# Encode the query into an embedding
+query_embedding = model.encode([query])[0]
+
 similar_docs = db.similarity_search_with_score(query=query_embedding, k=k)
 
 # Print the results
