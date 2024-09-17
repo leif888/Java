@@ -1,0 +1,40 @@
+pip install python-docx pandas openpyxl
+-------------------
+from docx import Document
+import pandas as pd
+
+def extract_hyperlinks_from_word(doc_path):
+    # Load your document
+    doc = Document(doc_path)
+    
+    # Prepare an empty list to hold the data
+    data = []
+
+    # Loop through each table in the document
+    for table in doc.tables:
+        # Assuming the second column contains the table name and hyperlink
+        for row in table.rows:
+            cells = row.cells
+            if len(cells) > 1:  # Ensure there's at least 2 columns
+                cell = cells[1]
+                paragraphs = cell.paragraphs
+                
+                # Check if there is a hyperlink in the paragraph
+                for paragraph in paragraphs:
+                    for run in paragraph.runs:
+                        if run._r.get_or_add_hyperlink().get_or_add_url():
+                            hyperlink = run._r.get_or_add_hyperlink().get_or_add_url().val
+                            text = run.text.strip()
+                            data.append([text, hyperlink])
+    
+    # Convert the list of lists into a DataFrame
+    df = pd.DataFrame(data, columns=['Table_Name', 'Hyperlink'])
+
+    return df
+
+# Use the function and specify the path to your .docx file
+document_path = 'path_to_your_document.docx'
+df = extract_hyperlinks_from_word(document_path)
+
+# Write the DataFrame to a CSV file
+df.to_csv('output.csv', index=False, encoding='utf-8')
