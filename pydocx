@@ -38,3 +38,62 @@ df = extract_hyperlinks_from_word(document_path)
 
 # Write the DataFrame to a CSV file
 df.to_csv('output.csv', index=False, encoding='utf-8')
+----------------------------
+from docx import Document
+from docx.oxml.shared import OML_NS
+from docx.oxml import parse_xml
+import pandas as pd
+
+def get_hyperlink(run):
+    """Attempts to get the hyperlink from a run of text."""
+    for element in run._r:
+        if 'hyperlink' in str(element):
+            rId = element.get('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}id')
+            return rId
+    return None
+
+def resolve_hyperlink(part, id):
+    """Resolves the hyperlink given the relationship id."""
+    relationships = part._relationships
+    if id in relationships:
+        rel = relationships[id]
+        if rel.is_external:
+            return rel.url
+    return None
+
+def extract_hyperlinks_from_word(doc_path):
+    # Load your document
+    doc = Document(doc_path)
+    
+    # Prepare an empty list to hold the data
+    data = []
+
+    # Loop through each table in the document
+    for table in doc.tables:
+        # Assuming the second column contains the table name and hyperlink
+        for row in table.rows:
+            cells = row.cells
+            if len(cells) > 1:  # Ensure there's at least 2 columns
+                cell = cells[1]
+                paragraphs = cell.paragraphs
+                
+                # Check if there is a hyperlink in the paragraph
+                for paragraph in paragraphs:
+                    for run in paragraph.runs:
+                        hyperlink_id = get_hyperlink(run)
+                        if hyperlink_id:
+                            hyperlink = resolve_hyperlink(doc.part, hyperlink_id)
+                            text = run.text.strip()
+                            data.append([text, hyperlink])
+    
+    # Convert the list of lists into a DataFrame
+    df = pd.DataFrame(data, columns=['Table_Name', 'Hyperlink'])
+
+    return df
+
+# Use the function and specify the path to your .docx file
+document_path = 'path_to_your_document.docx'
+df = extract_hyperlinks_from_word(document_path)
+
+# Write the DataFrame to a CSV file
+df.to_csv('output.csv', index=False, encoding='utf-8')
