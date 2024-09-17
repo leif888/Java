@@ -1,0 +1,49 @@
+import pandas as pd
+import os
+
+def append_hyperlink_based_on_table_name(data_file_path, mapping_file_path, output_dir):
+    """
+    Reads a CSV file (data_file_path), appends the hyperlink to column A based on the table name found in column B,
+    using a mapping provided by another CSV file (mapping_file_path), and then saves the modified chunks into separate files.
+    
+    Parameters:
+    - data_file_path: The path to the source CSV file containing the data.
+    - mapping_file_path: The path to the CSV file containing the table name to hyperlink mapping.
+    - output_dir: The directory where the modified CSV files will be saved.
+    """
+    # Ensure the output directory exists
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    # Load the mapping from the CSV file
+    mapping_df = pd.read_csv(mapping_file_path)
+    # Assuming the mapping CSV has columns 'TableName' and 'Hyperlink'
+    table_hyperlinks = dict(zip(mapping_df['TableName'], mapping_df['Hyperlink']))
+    
+    # Read the original CSV file into a DataFrame
+    df = pd.read_csv(data_file_path)
+    
+    # Define a function to append the hyperlink based on the table name
+    def append_hyperlink(row):
+        # Check if the table name in column B is in the mapping dictionary
+        if row['B'] in table_hyperlinks:
+            return f'{table_hyperlinks[row["B"]]}'
+        else:
+            return row['A']
+    
+    # Apply the function to column A
+    df['A'] = df.apply(append_hyperlink, axis=1)
+    
+    # Now proceed to split the DataFrame into chunks as before
+    for i, row in df.iterrows():
+        single_row_df = pd.DataFrame([row])
+        
+        # Save the mini DataFrame as a CSV file
+        file_name = os.path.join(output_dir, f'split_{i+1}.csv')
+        single_row_df.to_csv(file_name, index=False)
+
+# Example usage
+data_file_path = 'path_to_your_data_file.csv'  # Replace with your data file path
+mapping_file_path = 'path_to_your_mapping_file.csv'  # Replace with your mapping file path
+output_directory = 'output_directory'  # Replace with your desired output directory
+append_hyperlink_based_on_table_name(data_file_path, mapping_file_path, output_directory)
