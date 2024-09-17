@@ -36,3 +36,38 @@ df = pd.DataFrame(table_data, columns=['Table Name', 'Hyperlink'])
 df.to_csv('output.csv', index=False)
 
 print("Data saved to output.csv")
+
+===============
+pip install beautifulsoup4 pandas
+from bs4 import BeautifulSoup
+import pandas as pd
+
+# 指定你的HTML文件的路径
+html_file_path = 'path_to_your_file.html'  # 替换为你的HTML文件路径
+
+# 使用BeautifulSoup解析HTML文件
+with open(html_file_path, 'r', encoding='utf-8') as file:
+    html_content = file.read()
+
+soup = BeautifulSoup(html_content, 'html.parser')
+
+# 假设表格有一个唯一的标识符（如id或class），用于唯一选择它
+# 根据你的HTML结构调整选择器
+table = soup.find('table', {'id': 'your_table_id'})  # 替换为你的表格的ID或类名
+
+# 提取表格中的数据
+table_data = []
+for row in table.find_all('tr'):  # 假设每一行都包含在一个<tr>标签中
+    cols = row.find_all('td')  # 假设每个单元格都包含在一个<td>标签中
+    if len(cols) > 0:
+        table_name = cols[0].text.strip()
+        hyperlink = cols[0].find('a', href=True)['href'] if cols[0].find('a', href=True) else None
+        table_data.append([table_name, hyperlink])
+
+# 将列表转换成DataFrame
+df = pd.DataFrame(table_data, columns=['Table Name', 'Hyperlink'])
+
+# 将DataFrame保存为CSV文件
+df.to_csv('output.csv', index=False)
+
+print("Data saved to output.csv")
