@@ -1,0 +1,38 @@
+pip install beautifulsoup4 pandas requests
+
+from bs4 import BeautifulSoup
+import pandas as pd
+import requests
+
+# Assuming the HTML is on a webpage, let's fetch the HTML content
+url = 'http://example.com/path/to/your/page.html'  # Replace with your URL
+response = requests.get(url)
+html_content = response.text
+
+# Alternatively, if you have the HTML saved in a file:
+# with open('path_to_your_file.html', 'r') as f:
+#     html_content = f.read()
+
+# Parse the HTML using BeautifulSoup
+soup = BeautifulSoup(html_content, 'html.parser')
+
+# Find the table by its id or class or any other identifier
+# Adjust the selector according to your HTML structure
+table = soup.find('table', {'id': 'your_table_id'})  # Replace with your table's ID or class
+
+# Extract data from the table
+table_data = []
+for row in table.find_all('tr'):  # Assuming each row is enclosed in <tr>
+    cols = row.find_all('td')  # Assuming each cell is enclosed in <td>
+    if len(cols) > 0:
+        table_name = cols[0].text.strip()
+        hyperlink = cols[0].find('a', href=True)['href'] if cols[0].find('a', href=True) else None
+        table_data.append([table_name, hyperlink])
+
+# Convert the list of lists into a DataFrame
+df = pd.DataFrame(table_data, columns=['Table Name', 'Hyperlink'])
+
+# Save the DataFrame to a CSV file
+df.to_csv('output.csv', index=False)
+
+print("Data saved to output.csv")
