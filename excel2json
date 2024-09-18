@@ -1,0 +1,24 @@
+import pandas as pd
+import json
+
+# 加载Excel文件
+df = pd.read_excel('path_to_your_excel_file.xlsx')
+
+# 创建一个空列表来存储QA对
+qa_pairs = []
+
+# 遍历DataFrame的每一行
+for index, row in df.iterrows():
+    # 根据你的需求构建问题
+    question = f"在系统{row['B']}中，错误代码为{row['C']}，描述为'{row['D']}'，并且影响范围为{row['E']}的问题如何解决？"
+    # 使用G列的值作为答案
+    answer = str(row['G'])
+    
+    # 添加到QA对列表
+    qa_pairs.append({"question": question, "answer": answer})
+
+# 将QA对列表保存为JSON文件
+with open('qa_pairs.json', 'w', encoding='utf-8') as json_file:
+    json.dump(qa_pairs, json_file, ensure_ascii=False, indent=4)
+
+print("QA对已成功保存到JSON文件。")
