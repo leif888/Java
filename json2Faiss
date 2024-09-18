@@ -1,0 +1,49 @@
+from sentence_transformers import SentenceTransformer
+import json
+import numpy as np
+import faiss
+
+# 初始化模型
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# 读取QA对
+with open('qa_pairs.json', 'r') as file:
+    qa_pairs = json.load(file)
+
+# 提取问题
+questions = [qa['question'] for qa in qa_pairs]
+
+# 计算问题的嵌入向量
+question_embeddings = model.encode(questions)
+
+# 将嵌入向量转换为numpy数组
+question_embeddings = np.array(question_embeddings)
+
+---------------
+# 创建一个索引
+dimension = question_embeddings.shape[1]  # 获取嵌入向量的维度
+index = faiss.IndexFlatL2(dimension)  # 使用L2距离度量
+
+# 添加嵌入向量到索引
+index.add(question_embeddings)
+
+# 可选：保存索引以便以后使用
+faiss.write_index(index, "faq_index.faiss")
+------------
+def search_question(question, index):
+    # 计算输入问题的嵌入向量
+    query_embedding = model.encode([question])
+    query_embedding = np.array(query_embedding)
+
+    # 进行向量搜索
+    D, I = index.search(query_embedding, 1)  # 返回最相似的一个结果
+    return questions[I[0][0]], qa_pairs[I[0][0]]['answer']
+
+# 示例查询
+new_question = "在2023-01，系统MySystem中，错误代码为1234，描述为'无法连接到数据库'，并且影响范围为生产环境的问题如何解决？"
+similar_question, answer = search_question(new_question, index)
+print(f"找到的问题: {similar_question}")
+print(f"答案: {answer}")
+----------------
+# 加载已保存的索引
+index = faiss.read_index("faq_index.faiss")
