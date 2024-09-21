@@ -7,45 +7,68 @@ npm install --save react-dropzone papaparse xlsx
 Step 3: Create a File Upload Component
 Create a component that will handle the file upload.
 ----------
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 import XLSX from 'xlsx';
 
 const FileUploader = ({ onFilesImported }) => {
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const onDrop = useCallback(acceptedFiles => {
+    setUploadProgress(0); // Reset progress
     acceptedFiles.forEach(file => {
       if (file.type === 'text/csv') {
         Papa.parse(file, {
-          complete: function(results) {
-            const data = results.data;
-            onFilesImported(data);
-          }
+          header: true,
+          complete: results => {
+            const { data } = results;
+            data.forEach((row, index) => {
+              if (index > 0) { // Skip the first row which is the header
+                onFilesImported([results.meta.fields, row]);
+                setUploadProgress((prevProgress) => Math.min(prevProgress + (100 / data.length), 100));
+              }
+            });
+          },
+          error: err => console.error('Error during parsing:', err)
         });
       } else if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
         const reader = new FileReader();
         reader.onload = function(e) {
           const data = e.target.result;
-          const workbook = XLSX.read(data, {type: 'binary'});
+          const workbook = XLSX.read(data, { type: 'binary' });
           const sheetName = workbook.SheetNames[0];
           const sheet = workbook.Sheets[sheetName];
-          const json = XLSX.utils.sheet_to_json(sheet);
-          onFilesImported(json);
+          const rows = XLSX.utils.sheet_to_json(sheet);
+          rows.forEach((row, index) => {
+            if (index > 0) { // Skip the first row which is the header
+              const headerRow = Object.keys(rows[0]);
+              onFilesImported([headerRow, row]);
+              setUploadProgress((prevProgress) => Math.min(prevProgress + (100 / rows.length), 100));
+            }
+          });
         };
+        reader.onerror = error => console.error('Error reading file:', error);
         reader.readAsBinaryString(file);
       } else if (file.type === 'text/plain') {
         // Handle text files here
         const reader = new FileReader();
         reader.onload = () => {
           const content = reader.result;
-          onFilesImported(content.split('\n'));
+          const lines = content.split('\n');
+          lines.forEach((line, index) => {
+            if (index > 0) { // Skip the first line which is the header
+              onFilesImported([lines[0], line]);
+              setUploadProgress((prevProgress) => Math.min(prevProgress + (100 / lines.length), 100));
+            }
+          });
         };
         reader.readAsText(file);
       }
     });
   }, [onFilesImported]);
 
-  const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   return (
     <div {...getRootProps()}>
@@ -55,6 +78,7 @@ const FileUploader = ({ onFilesImported }) => {
           <p>Drop the files here ...</p> :
           <p>Drag 'n' drop some files here, or click to select files</p>
       }
+      <p>Upload Progress: {uploadProgress}%</p>
     </div>
   );
 };
@@ -68,14 +92,31 @@ You would need to have a backend service or a script that can take the parsed da
 -------------
 import axios from 'axios';
 
-const importToFaiss = async (data) => {
+const importToFaiss = async (chunk) => {
   try {
-    const response = await axios.post('/api/import', { data });
-    console.log('Data imported successfully:', response.data);
+    const response = await axios.post('/api/import', { data: chunk });
+    console.log('Chunk imported successfully:', response.data);
   } catch (error) {
-    console.error('Error importing data:', error);
+    console.error('Error importing chunk:', error);
   }
 };
+
+function App() {
+  const handleFilesImported = (chunk) => {
+    importToFaiss(chunk);
+  };
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>FAISS File Importer</h1>
+        <FileUploader onFilesImported={handleFilesImported} />
+      </header>
+    </div>
+  );
+}
+
+export default App;
 ---------------
 Step 5: Use the FileUploader in Your App
 Finally, use the FileUploader component in your main app component and pass the importToFaiss function to handle the import logic.
