@@ -64,73 +64,71 @@ export default App;
 ---------------
   Step 2: Add CSS for Styling
 Add some CSS to style the layout and differentiate between successful and failed uploads:\
-// src/App.js
-import React, { useState } from 'react';
-import './App.css';
-import FileUploader from './components/FileUploader';
-
-const importToFaiss = async (chunk) => {
-  try {
-    const response = await fetch('/api/import', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ data: chunk }),
-    });
-    const result = await response.json();
-    if (response.ok) {
-      return { success: true, message: result.message || 'Chunk imported successfully.' };
-    } else {
-      return { success: false, message: result.error || 'An error occurred.' };
-    }
-  } catch (error) {
-    return { success: false, message: error.message || 'An error occurred.' };
-  }
-};
-
-function App() {
-  const [history, setHistory] = useState([]);
-
-  const handleFilesImported = async (chunk) => {
-    const result = await importToFaiss(chunk);
-    setHistory(prevHistory => [
-      ...prevHistory,
-      { ...result, timestamp: new Date().toLocaleString() }
-    ]);
-  };
-
-  return (
-    <div className="App">
-      <div className="App-body">
-        <div className="left-panel">
-          <h2>Upload History</h2>
-          <ul>
-            {history.map((item, index) => (
-              <li key={index} className={`status ${item.success ? 'success' : 'failure'}`}>
-                {item.timestamp}: {item.success ? 'Success' : 'Failed'} - {item.message}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="right-panel">
-          <header className="App-header">
-            <h1>FAISS File Importer</h1>
-            <div className="drop-zone" {...getRootProps()}>
-              <input {...getInputProps()} />
-              {isDragActive ?
-                <p>Drop the files here ...</p> :
-                <p>Drag 'n' drop some files here, or click to select files</p>
-              }
-            </div>
-          </header>
-        </div>
-      </div>
-    </div>
-  );
+/* src/App.css */
+.App {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100vh;
+  background-color: #f0f0f0;
 }
 
-export default App;
+.App-body {
+  display: flex;
+  width: 80%;
+  max-width: 1200px; /* 设置最大宽度以防止过宽 */
+}
+
+.left-panel {
+  width: 30%;
+  padding: 20px;
+  border-right: 1px solid #ccc;
+  background-color: white;
+  border-radius: 5px 0 0 5px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.right-panel {
+  width: 70%;
+  padding: 20px;
+  background-color: white;
+  border-radius: 0 5px 5px 0;
+  box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.success {
+  color: green;
+}
+
+.failure {
+  color: red;
+}
+
+.App-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+ul li {
+  margin-bottom: 10px;
+}
+
+.drop-zone {
+  border: 2px dashed #aaa;
+  border-radius: 5px;
+  padding: 20px;
+  text-align: center;
+}
+
+.drop-zone.is-drag-active {
+  border-color: #007bff;
+  color: #007bff;
+}
 
 ----------------
   Step 3: Ensure Correct File Structure
