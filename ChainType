@@ -1,0 +1,8 @@
+RetrievalQA
+RetrievalQA typically refers to a system where you have a question-answering model that uses a retriever to fetch relevant documents or passages from a corpus. The model then processes these documents to generate answers to the questions posed by users. This approach is direct and focused on answering one question at a time.
+
+Usage: It's suitable for scenarios where the user asks a single question and expects a single, precise answer.
+Context Handling: Does not inherently handle conversation context; each question is treated independently of any previous interactions.
+-----------
+ConversationalRetrievalChain
+On the other hand, ConversationalRetrievalChain is designed to maintain a chain of thought across multiple interactions, allowing it to handle conversations where the context from previous exchanges can influence subsequent questions and answers.
