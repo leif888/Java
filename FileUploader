@@ -1,6 +1,5 @@
 // src/components/FileUploader.js
 import React, { useCallback } from 'react';
-import Papa from 'papaparse'; // 导入PapaParse用于CSV解析
 
 type SupportExportFormats = {
   format: string;
@@ -48,41 +47,3 @@ const FileUploader: React.FC<Props> = ({ onImport }) => {
 };
 
 export default FileUploader;
------------------------
-const express = require('express');
-const bodyParser = require('body-parser');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-
-const app = express();
-app.use(bodyParser.json());
-
-// 设置文件存储路径
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function(req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ storage: storage });
-
-// 文件上传API
-app.post('/api/import', upload.single('file'), (req, res) => {
-  try {
-    const filePath = req.file.path;
-    console.log(`File '${req.file.originalname}' saved to '${filePath}'`);
-    res.status(200).json({ message: 'File imported successfully.', path: filePath });
-  } catch (error) {
-    console.error('Error importing file:', error);
-    res.status(500).json({ error: 'An error occurred.' });
-  }
-});
-
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
