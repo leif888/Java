@@ -47,3 +47,34 @@ const FileUploader: React.FC<Props> = ({ onImport }) => {
 };
 
 export default FileUploader;
+
+-------------------
+from flask import Flask, request, jsonify
+import os
+from werkzeug.utils import secure_filename
+
+app = Flask(__name__)
+
+# 配置上传文件夹
+UPLOAD_FOLDER = 'uploads/'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# 检查文件夹是否存在，不存在则创建
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+@app.route('/api/import', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        return jsonify({'message': f'File {filename} imported successfully.', 'path': filepath}), 200
+
+if __name__ == '__main__':
+    app.run(debug=True, port=3001)
