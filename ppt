@@ -1,0 +1,7 @@
+A Vector Database, also known as an embedding database or a semantic database, is a type of database that stores and manages vectors instead of traditional tabular data. Vectors in this context are multi-dimensional numerical arrays that can represent various types of information, such as the meaning of words or sentences, images, or any other entity that can be converted into numerical form.
+------------
+"chunking" refers to the process of dividing large pieces of data into smaller, manageable parts called "chunks."
+Text Processing: In NLP tasks, long texts might be chunked to make them easier to handle by models. This can involve splitting documents into sentences or paragraphs, or breaking text into fixed-size segments for processing.
+------------
+"embedding" refers to the process of converting discrete pieces of information, such as words or sentences, into numerical vectors that capture the semantic meaning of the input data.
+Document Embeddings: These capture the meaning of longer texts, such as articles or books. They can be created by averaging word embeddings or using models specifically designed for document-level semantics.
