@@ -1,0 +1,28 @@
+# Define the name of the Java log file you want to read from
+input_log_file = 'path_to_your_log_file.log'
+
+# Define the name of the output file where the filtered lines will be written
+output_log_file = 'filtered_log_output.log'
+
+# The string you're looking for in each line
+search_string = 'xxxx'
+
+try:
+    # Open the input log file in read mode
+    with open(input_log_file, 'r', encoding='utf-8') as file:
+        # Read all lines from the file
+        lines = file.readlines()
+
+    # Open the output file in write mode
+    with open(output_log_file, 'w', encoding='utf-8') as file:
+        # Iterate over the lines and write only those containing the search string
+        for line in lines:
+            if search_string in line:
+                file.write(line)
+
+except FileNotFoundError:
+    print(f"The file {input_log_file} does not exist.")
+except Exception as e:
+    print(f"An error occurred: {e}")
+
+print("The process finished, check the file:", output_log_file)
