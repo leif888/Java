@@ -1,0 +1,34 @@
+def read_file(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return file.read()
+
+def write_file(file_path, content):
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write(content)
+
+def main():
+    # 读取原始文件
+    original_text = read_file('original.txt')
+    
+    # 读取替换规则文件
+    replacements = read_file('replacements.txt').splitlines()
+    
+    # 创建一个字典来存储替换规则
+    replacement_dict = {}
+    for line in replacements:
+        if ':' in line:
+            key, value = line.split(':', 1)
+            replacement_dict[key.strip()] = value.strip()
+    
+    # 应用替换规则
+    for key, value in replacement_dict.items():
+        original_text = original_text.replace(key, value)
+    
+    # 输出结果
+    print(original_text)
+    
+    # 如果需要保存到文件中，可以取消注释下面这行
+    # write_file('modified_original.txt', original_text)
+
+if __name__ == '__main__':
+    main()
