@@ -1,13 +1,23 @@
-CREATE TEMP FUNCTION GetLatestComments(msg_id STRING)
+CREATE TEMP FUNCTION GetLatestComments(msg_id STRING, child_msgid STRING)
 RETURNS STRING
 LANGUAGE sql AS """
-  WITH combined_comments AS (
+  WITH formatted_comments AS (
     SELECT
-      STRING_AGG(comments, ' ' ORDER BY audit_timestamp DESC) AS combined_comment
+      CASE
+        WHEN comments LIKE CONCAT('%', @child_msgid, '%') THEN CONCAT(CAST(audit_timestamp AS STRING), ': ', REGEXP_REPLACE(comments, CONCAT('note added to msgid \$', @child_msgid, '\$ : '), ''))
+        ELSE comments
+      END AS formatted_comment,
+      audit_timestamp
     FROM
       `project.dataset.your_table`
     WHERE
       msg_id = @msg_id
+  ),
+  combined_comments AS (
+    SELECT
+      STRING_AGG(formatted_comment, ' ' ORDER BY audit_timestamp DESC) AS combined_comment
+    FROM
+      formatted_comments
   )
   SELECT
     SUBSTRING(combined_comment, 1, 1000)
