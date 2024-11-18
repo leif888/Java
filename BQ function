@@ -1,0 +1,25 @@
+CREATE TEMP FUNCTION GetLatestComments(msg_id STRING)
+RETURNS STRING
+LANGUAGE sql AS """
+  WITH combined_comments AS (
+    SELECT
+      STRING_AGG(comments, ' ' ORDER BY audit_timestamp DESC) AS combined_comment
+    FROM
+      `project.dataset.your_table`
+    WHERE
+      msg_id = @msg_id
+  )
+  SELECT
+    SUBSTRING(combined_comment, 1, 1000)
+  FROM
+    combined_comments
+""";
+
+SELECT
+  msg_id,
+  GetLatestComments(msg_id) AS latest_combined_comments
+FROM
+  `project.dataset.your_table`
+GROUP BY
+  msg_id
+LIMIT 10; -- Adjust the limit as needed
