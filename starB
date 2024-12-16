@@ -1,0 +1,253 @@
+2. 定义测试用例配置文件格式
+每个config.yaml文件应该包含三个配置项：
+# test_case_1/config.yaml
+execute_only: false  # 是否只执行查询而不进行任何验证
+compare_row_count: true  # 是否对比记录数
+compare_row_values: true  # 是否对比每条记录和列的值
+-------------------------
+2. 修改 load_test_cases fixture
+你需要更新load_test_cases fixture，以检查每个测试用例文件夹中是否存在variables.yaml文件，并根据情况加载相应的变量配置。
+import pytest
+import os
+from pathlib import Path
+import yaml
+import glob
+
+@pytest.fixture(scope="session")
+def load_test_cases(global_config):
+    included_folders = global_config.get('included_test_folders', [])
+    test_cases = []
+
+    for pattern in included_folders:
+        for folder in glob.glob(pattern, recursive=True):
+            case_dir = Path(folder)
+            if (case_dir / "query.sql").is_file() and (case_dir / "expected.csv").is_file() and (case_dir / "config.yaml").is_file():
+                with open(case_dir / "config.yaml", 'r') as file:
+                    config = yaml.safe_load(file)
+                
+                variables = {}
+                variables_path = case_dir / "variables.yaml"
+                if variables_path.is_file():
+                    with open(variables_path, 'r') as var_file:
+                        variables = yaml.safe_load(var_file) or {}
+
+                test_cases.append({
+                    'sql': case_dir / "query.sql",
+                    'csv': case_dir / "expected.csv",
+                    'name': case_dir.name,
+                    'config': config,  # 包含测试用例特定配置
+                    'variables': variables  # 包含测试用例特定变量
+                })
+                logging.info(f"Included test case: {case_dir}")
+
+    logging.info(f"Total {len(test_cases)} test cases loaded.")
+    return test_cases
+
+@pytest.fixture(scope="session")
+def global_config():
+    with open("config.yaml", 'r') as file:
+        return yaml.safe_load(file)
+------------------------------
+3. 修改 render_sql 函数
+接下来，更新render_sql函数，使其能够处理从variables.yaml文件中加载的变量。如果没有variables.yaml文件，则默认使用全局变量或空字典。
+from jinja2 import Template
+
+def render_sql(template_path, variables):
+    with open(template_path, 'r') as file:
+        template = Template(file.read())
+        return template.render(variables)
+------------------
+4. 修改测试函数以支持新配置
+确保你的测试函数仍然能够正确处理每个测试用例的配置和变量。这里不需要做额外的修改，因为test_query_against_csv已经可以从test_case字典中获取所有必要的信息。
+
+import pandas as pd
+from trino.dbapi import connect
+from trino.exceptions import TrinoUserError
+import pytest
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def connect_to_starburst(config):
+    # 连接Starburst的代码保持不变
+    pass
+
+def get_global_variables(global_config):
+    # 获取全局变量的代码保持不变
+    pass
+
+def test_query_against_csv(test_case, global_config):
+    # 合并全局变量和测试用例特定变量
+    all_variables = get_global_variables(global_config).copy()
+    all_variables.update(test_case['variables'])
+
+    sql_content = render_sql(test_case['sql'], all_variables)
+    df_expected = pd.read_csv(test_case['csv'])
+    
+    config = test_case['config']
+    execute_only = config.get('execute_only', False)
+    compare_row_count = config.get('compare_row_count', True)
+    compare_row_values = config.get('compare_row_values', True)
+
+    engine = connect_to_starburst(global_config)
+
+    with engine.cursor() as cursor:
+        try:
+            logger.info(f"Executing query from {test_case['sql']}")
+            cursor.execute(sql_content)
+            result = cursor.fetchall()
+            column_names = [desc[0] for desc in cursor.description]
+            df_actual = pd.DataFrame(result, columns=column_names)
+
+            if not execute_only:
+                if compare_row_count:
+                    assert len(df_actual) == len(df_expected), "Record counts do not match."
+                
+                if compare_row_values:
+                    pd.testing.assert_frame_equal(df_actual, df_expected, check_dtype=False)
+            
+            logger.info("Query executed successfully.")
+
+        except TrinoUserError as e:
+            pytest.fail(f"Query execution failed: {e}")
+-------------------------------
+5. 示例 variables.yaml 文件
+这里是一个示例variables.yaml文件，展示了如何为不同的测试用例配置变量：
+# test_case_1/variables.yaml
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+department: "Sales"
+-----------------------
+7. 日志记录
+为了更好地跟踪哪些测试用例被加载和执行，以及它们的变量配置，可以在load_test_cases fixture中添加日志记录：
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@pytest.fixture(scope="session")
+def load_test_cases(global_config):
+    included_folders = global_config.get('included_test_folders', [])
+    test_cases = []
+
+    for pattern in included_folders:
+        for folder in glob.glob(pattern, recursive=True):
+            case_dir = Path(folder)
+            if (case_dir / "query.sql").is_file() and (case_dir / "expected.csv").is_file() and (case_dir / "config.yaml").is_file():
+                with open(case_dir / "config.yaml", 'r') as file:
+                    config = yaml.safe_load(file)
+                
+                variables = {}
+                variables_path = case_dir / "variables.yaml"
+                if variables_path.is_file():
+                    with open(variables_path, 'r') as var_file:
+                        variables = yaml.safe_load(var_file) or {}
+                    logger.info(f"Loaded variables for {case_dir}: {variables}")
+                else:
+                    logger.info(f"No variables.yaml found for {case_dir}, using default variables.")
+
+                test_cases.append({
+                    'sql': case_dir / "query.sql",
+                    'csv': case_dir / "expected.csv",
+                    'name': case_dir.name,
+                    'config': config,  # 包含测试用例特定配置
+                    'variables': variables  # 包含测试用例特定变量
+                })
+                logger.info(f"Included test case: {case_dir}")
+
+    logger.info(f"Total {len(test_cases)} test cases loaded.")
+    return test_cases
+----------------------------
+你需要创建一个函数来建立与Starburst的连接。这个函数将读取配置文件中的连接信息，并返回一个可以用来执行查询的连接对象。
+from trino.dbapi import connect
+
+def connect_to_starburst(config):
+    return connect(
+        host=config['starburst']['host'],
+        port=config['starburst']['port'],
+        user=config['starburst']['user'],
+        http_scheme='https' if config['starburst'].get('use_https', False) else 'http',
+        auth=BasicAuthentication(
+            config['starburst']['user'],
+            config['starburst']['password']
+        ) if 'password' in config['starburst'] else None,
+        catalog=config['starburst']['catalog'],
+        schema=config['starburst']['schema'],  # 如果需要指定schema
+        verify=True  # 验证SSL证书，默认为True
+    )
+-----------------------
+
+4. 修改测试函数以支持新配置
+接下来，更新你的测试函数test_query_against_csv，使其根据每个测试用例的配置来决定执行哪些检查。
+import pandas as pd
+from trino.dbapi import connect
+from trino.exceptions import TrinoUserError
+import pytest
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def connect_to_starburst(config):
+    # 连接Starburst的代码保持不变
+    pass
+
+def render_sql(template_path, variables):
+    # 渲染SQL模板的代码保持不变
+    pass
+
+def get_variables():
+    # 获取全局变量的代码保持不变
+    pass
+
+def test_query_against_csv(test_case):
+    sql_content = render_sql(test_case['sql'], get_variables())
+    df_expected = pd.read_csv(test_case['csv'])
+    
+    config = test_case['config']
+    execute_only = config.get('execute_only', False)
+    compare_row_count = config.get('compare_row_count', True)
+    compare_row_values = config.get('compare_row_values', True)
+
+    engine = connect_to_starburst(config)  # 假设你已经有了一个从全局配置读取连接信息的函数
+
+    with engine.cursor() as cursor:
+        try:
+            logger.info(f"Executing query from {test_case['sql']}")
+            cursor.execute(sql_content)
+            result = cursor.fetchall()
+            column_names = [desc[0] for desc in cursor.description]
+            df_actual = pd.DataFrame(result, columns=column_names)
+
+            if not execute_only:
+                if compare_row_count:
+                    assert len(df_actual) == len(df_expected), "Record counts do not match."
+                
+                if compare_row_values:
+                    pd.testing.assert_frame_equal(df_actual, df_expected, check_dtype=False)
+            
+            logger.info("Query executed successfully.")
+
+        except TrinoUserError as e:
+            pytest.fail(f"Query execution failed: {e}")
+-----------------------
+5. 执行测试
+确保你的pytest命令仍然可以正常运行所有测试用例。你可以通过命令行运行 pytest 来执行所有的测试用例：
+pytest -v --tb=short
+------------------
+6. 示例 config.yaml 文件
+这里是一个示例config.yaml文件，展示了如何为不同的测试用例配置不同的行为：
+# test_case_1/config.yaml
+execute_only: false
+compare_row_count: true
+compare_row_values: true
+--------------
+# test_case_2/config.yaml
+execute_only: true  # 只执行查询，不进行任何验证
+compare_row_count: false
+compare_row_values: false
+--------------------
+# test_case_3/config.yaml
+execute_only: false
+compare_row_count: true  # 只对比记录数，不对比具体数据
+compare_row_values: false
+------------------------
