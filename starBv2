@@ -1,0 +1,211 @@
+1. 全局配置文件 config.yaml
+# config.yaml
+starburst:
+  host: "localhost"
+  port: 8080
+  user: "user"
+  catalog: "hive"
+
+included_test_folders:
+  - "tests/*"
+  2. 测试用例的 config.yaml 文件
+每个测试用例的 config.yaml 文件现在包含所有必要的配置和变量。如果没有 variables 部分，默认使用空字典。
+# tests/test_case_1/config.yaml
+execute_only: false
+compare_row_count: true
+compare_row_values: true
+
+variables:
+  start_date: "2024-01-01"
+  end_date: "2024-01-31"
+  department: "Marketing"
+3. SQL 渲染模块 sql_renderer.py
+# sql_renderer.py
+
+from jinja2 import Template
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+def render_sql(template_path, variables):
+    """
+    使用Jinja2模板引擎渲染SQL文件中的变量。
+    
+    :param template_path: SQL模板文件的路径
+    :param variables: 包含变量值的字典
+    :return: 渲染后的SQL字符串
+    """
+    with open(template_path, 'r') as file:
+        template = Template(file.read())
+        rendered_sql = template.render(variables)
+        logger.info(f"Rendered SQL for {template_path}: {rendered_sql}")
+        return rendered_sql
+  4. 测试执行脚本 test_runner.py
+  # test_runner.py
+
+import pytest
+import os
+from pathlib import Path
+import yaml
+import glob
+import pandas as pd
+from sql_renderer import render_sql  # 导入render_sql函数
+from trino.exceptions import TrinoUserError, TrinoQueryError  # 导入Trino异常
+
+@pytest.fixture(scope="session")
+def load_test_cases(global_config):
+    included_folders = global_config.get('included_test_folders', [])
+    test_cases = []
+
+    for pattern in included_folders:
+        for folder in glob.glob(pattern, recursive=True):
+            case_dir = Path(folder)
+            if (case_dir / "query.sql").is_file() and (case_dir / "expected.csv").is_file() and (case_dir / "config.yaml").is_file():
+                with open(case_dir / "config.yaml", 'r') as file:
+                    config = yaml.safe_load(file)
+                
+                # 提取配置和变量
+                variables = config.get('variables', {})
+                logger.info(f"Loaded variables for {case_dir}: {variables}")
+
+                test_cases.append({
+                    'sql': case_dir / "query.sql",
+                    'csv': case_dir / "expected.csv",
+                    'name': case_dir.name,
+                    'config': config,  # 包含测试用例特定配置
+                    'variables': variables  # 包含测试用例特定变量
+                })
+                logger.info(f"Included test case: {case_dir}")
+
+    logger.info(f"Total {len(test_cases)} test cases loaded.")
+    return test_cases
+
+@pytest.fixture(scope="session")
+def global_config():
+    with open("config.yaml", 'r') as file:
+        return yaml.safe_load(file)
+
+def connect_to_starburst(config):
+    """
+    连接到Starburst的函数。
+    
+    :param config: 包含连接信息的配置字典
+    :return: 数据库连接对象
+    """
+    from trino.dbapi import connect
+    connection = connect(
+        host=config['starburst']['host'],
+        port=config['starburst']['port'],
+        user=config['starburst']['user'],
+        catalog=config['starburst']['catalog']
+    )
+    return connection
+
+def test_query_against_csv(test_case, global_config):
+    sql_content = render_sql(test_case['sql'], test_case['variables'])
+    df_expected = pd.read_csv(test_case['csv'])
+    
+    config = test_case['config']
+    execute_only = config.get('execute_only', False)
+    compare_row_count = config.get('compare_row_count', True)
+    compare_row_values = config.get('compare_row_values', True)
+
+    engine = connect_to_starburst(global_config)
+
+    with engine.cursor() as cursor:
+        try:
+            logger.info(f"Executing query from {test_case['sql']}")
+            cursor.execute(sql_content)
+            result = cursor.fetchall()
+            column_names = [desc[0] for desc in cursor.description]
+            df_actual = pd.DataFrame(result, columns=column_names)
+
+            if not execute_only:
+                if compare_row_count:
+                    assert len(df_actual) == len(df_expected), "Record counts do not match."
+                
+                if compare_row_values:
+                    pd.testing.assert_frame_equal(df_actual, df_expected, check_dtype=False)
+            
+            logger.info("Query executed successfully.")
+
+        except (TrinoUserError, TrinoQueryError) as e:
+            # 捕获Trino相关的异常
+            error_message = f"Query execution failed: {e}\nSQL: {sql_content}\nTraceback: {traceback.format_exc()}"
+            logger.error(error_message)
+            pytest.fail(error_message)
+        
+        except Exception as e:
+            # 捕获其他未预见的异常
+            error_message = f"An unexpected error occurred: {e}\nSQL: {sql_content}\nTraceback: {traceback.format_exc()}"
+            logger.error(error_message)
+            pytest.fail(error_message)
+    --------
+    5. Pytest 配置文件 conftest.py
+    # conftest.py
+
+import pytest
+import logging
+import traceback
+import json
+
+# 配置日志记录
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# 自定义 HTML 报告标题和表格头
+def pytest_html_report_title(report):
+    report.title = "Starburst SQL 测试报告"
+
+def pytest_html_results_table_header(cells):
+    cells.insert(2, "<th>SQL 文件</th>")
+    cells.insert(3, "<th>配置文件</th>")
+
+def pytest_html_results_table_row(report, cells):
+    cells.insert(2, report.user_properties.get("sql_file", ""))
+    cells.insert(3, report.user_properties.get("config_file", ""))
+
+# 收集测试结果并生成自定义报告
+test_results = []
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    
+    # 收集测试结果
+    if report.when == 'call':
+        test_case = item.funcargs.get('test_case', None)
+        if test_case:
+            result = {
+                'name': test_case['name'],
+                'status': report.outcome,
+                'sql_file': str(test_case['sql']),
+                'config_file': str(test_case['config.yaml']),
+                'error': None
+            }
+            
+            if report.failed:
+                result['error'] = {
+                    'message': str(report.longrepr),
+                    'traceback': report.longrepr.reprcrash.path.read_text() if hasattr(report.longrepr, 'reprcrash') else None
+                }
+            
+            test_results.append(result)
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    # 在所有测试用例执行完毕后生成报告
+    report_file = 'custom_report.json'
+    
+    with open(report_file, 'w') as f:
+        json.dump(test_results, f, indent=4, ensure_ascii=False)
+    
+    terminalreporter.write_line(f"\n测试报告已生成: {report_file}")
+    ---------------
+    6. 安装依赖
+确保你已经安装了所需的依赖库
+----------
+7. 运行测试并生成报告
+你可以通过以下命令运行测试并生成 HTML 报告：
+pytest --html=report.html
