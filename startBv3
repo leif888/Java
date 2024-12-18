@@ -1,3 +1,26 @@
+def generate_report(self):
+        """
+        生成并打印所有测试用例的执行结果。
+        """
+        print("\n=== Test Report ===\n")
+        total_tests = len(self.test_results)
+        successful_tests = sum(1 for result in self.test_results if result.status == "success")
+        failed_tests = total_tests - successful_tests
+
+        print(f"Total Tests: {total_tests}")
+        print(f"Successful Tests: {successful_tests}")
+        print(f"Failed Tests: {failed_tests}\n")
+
+        for result in self.test_results:
+            print(f"Test Case: {result.name}")
+            print(f"Status: {result.status}")
+            if result.status == "failure":
+                print(f"Error Message: {result.error_message}")
+            print(f"Duration: {result.get_duration():.2f} seconds\n")
+---------------------
+
+
+
 TestCaseResult 类：用于保存每个测试用例的结果。
 TestRunner 类：负责执行测试用例，并将结果保存到 TestCaseResult 对象中。
 generate_report 函数：生成并输出测试报告。
