@@ -1,3 +1,53 @@
+conftest.py
+import pytest
+import os
+from pathlib import Path
+import yaml
+
+@pytest.fixture(scope="session")
+def global_config():
+    with open("config.yaml", 'r') as file:
+        return yaml.safe_load(file)
+
+@pytest.fixture(scope="session")
+def load_test_cases(global_config):
+    included_folders = global_config.get('included_test_folders', [])
+    test_cases = []
+
+    for pattern in included_folders:
+        for folder in glob.glob(pattern, recursive=True):
+            case_dir = Path(folder)
+            if (case_dir / "query.sql").is_file() and (case_dir / "expected.csv").is_file() and (case_dir / "config.yaml").is_file():
+                with open(case_dir / "config.yaml", 'r') as file:
+                    config = yaml.safe_load(file)
+                
+                # 提取配置和变量
+                variables = config.get('variables', {})
+                
+                test_cases.append({
+                    'sql': case_dir / "query.sql",
+                    'csv': case_dir / "expected.csv",
+                    'name': case_dir.name,
+                    'config': config,  # 包含测试用例特定配置
+                    'variables': variables  # 包含测试用例特定变量
+                })
+    
+    return test_cases
+
+@pytest.fixture
+def test_case(load_test_cases, request):
+    """
+    根据测试函数的参数动态选择对应的 test_case。
+    """
+    test_case_name = request.node.name.split('[')[0]  # 获取测试函数名称
+    for case in load_test_cases:
+        if case['name'] == test_case_name:
+            return case
+    
+    pytest.fail(f"Test case '{test_case_name}' not found in loaded test cases.")
+
+---------------------
+
 1. 全局配置文件 config.yaml
 # config.yaml
 starburst:
