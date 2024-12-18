@@ -1,0 +1,204 @@
+TestCaseResult 类：用于保存每个测试用例的结果。
+TestRunner 类：负责执行测试用例，并将结果保存到 TestCaseResult 对象中。
+generate_report 函数：生成并输出测试报告。
+v3.1. 定义 TestCaseResult 类
+这个类用于保存每个测试用例的名称、状态（成功或失败）以及失败原因（如果有）。
+from datetime import datetime
+
+class TestCaseResult:
+    def __init__(self, name):
+        """
+        初始化 TestCaseResult 对象。
+        
+        :param name: 测试用例的名称
+        """
+        self.name = name
+        self.status = None
+        self.error_message = None
+        self.start_time = datetime.now()
+        self.end_time = None
+
+    def set_success(self):
+        """
+        标记测试用例为成功。
+        """
+        self.status = "success"
+        self.end_time = datetime.now()
+
+    def set_failure(self, error_message):
+        """
+        标记测试用例为失败，并记录失败原因。
+        
+        :param error_message: 失败的原因或错误信息
+        """
+        self.status = "failure"
+        self.error_message = error_message
+        self.end_time = datetime.now()
+
+    def get_duration(self):
+        """
+        获取测试用例的执行时间（秒）。
+        
+        :return: 测试用例的执行时间（秒）
+        """
+        if self.start_time and self.end_time:
+            return (self.end_time - self.start_time).total_seconds()
+        return None
+
+    def __repr__(self):
+        """
+        返回 TestCaseResult 对象的字符串表示形式。
+        """
+        return f"TestCaseResult(name={self.name}, status={self.status}, error_message={self.error_message})"
+  ---------------------
+  3.2. 定义 TestRunner 类
+这个类负责执行测试用例，并将结果保存到 TestCaseResult 对象中。你可以根据需要添加更多的测试逻辑。
+import os
+import pandas as pd
+from sql_renderer import render_sql  # 假设你有一个 SQL 渲染模块
+from trino.exceptions import TrinoUserError, TrinoQueryError  # 假设你使用的是 Trino 数据库
+import logging
+
+# 配置日志记录
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+class TestRunner:
+    def __init__(self, config_file="config.yaml"):
+        """
+        初始化 TestRunner 对象。
+        
+        :param config_file: 全局配置文件的路径
+        """
+        with open(config_file, 'r') as file:
+            self.global_config = yaml.safe_load(file)
+        self.test_results = []
+
+    def load_test_cases(self):
+        """
+        加载所有测试用例。
+        
+        :return: 包含所有测试用例的列表
+        """
+        included_folders = self.global_config.get('included_test_folders', [])
+        test_cases = []
+
+        for pattern in included_folders:
+            for folder in glob.glob(pattern, recursive=True):
+                case_dir = Path(folder)
+                if (case_dir / "query.sql").is_file() and (case_dir / "expected.csv").is_file() and (case_dir / "config.yaml").is_file():
+                    with open(case_dir / "config.yaml", 'r') as file:
+                        config = yaml.safe_load(file)
+                    
+                    # 提取配置和变量
+                    variables = config.get('variables', {})
+                    
+                    test_cases.append({
+                        'sql': case_dir / "query.sql",
+                        'csv': case_dir / "expected.csv",
+                        'name': case_dir.name,
+                        'config': config,  # 包含测试用例特定配置
+                        'variables': variables  # 包含测试用例特定变量
+                    })
+        
+        return test_cases
+
+    def execute_query(self, sql_content, config):
+        """
+        执行 SQL 查询并返回结果。
+        
+        :param sql_content: SQL 查询内容
+        :param config: 测试用例的配置
+        :return: 查询结果
+        """
+        engine = self.connect_to_starburst()
+        with engine.cursor() as cursor:
+            logger.info(f"Executing query: {sql_content}")
+            cursor.execute(sql_content)
+            result = cursor.fetchall()
+            column_names = [desc[0] for desc in cursor.description]
+            df_actual = pd.DataFrame(result, columns=column_names)
+            return df_actual
+
+    def connect_to_starburst(self):
+        """
+        连接到 Starburst 数据库。
+        
+        :return: 数据库连接对象
+        """
+        from trino.dbapi import connect
+        connection = connect(
+            host=self.global_config['starburst']['host'],
+            port=self.global_config['starburst']['port'],
+            user=self.global_config['starburst']['user'],
+            catalog=self.global_config['starburst']['catalog']
+        )
+        return connection
+
+    def run_test_case(self, test_case):
+        """
+        执行单个测试用例。
+        
+        :param test_case: 测试用例的详细信息
+        """
+        result = TestCaseResult(test_case['name'])
+        try:
+            sql_content = render_sql(test_case['sql'], test_case['variables'])
+            df_expected = pd.read_csv(test_case['csv'])
+            
+            config = test_case['config']
+            execute_only = config.get('execute_only', False)
+            compare_row_count = config.get('compare_row_count', True)
+            compare_row_values = config.get('compare_row_values', True)
+
+            df_actual = self.execute_query(sql_content, config)
+
+            if not execute_only:
+                if compare_row_count:
+                    assert len(df_actual) == len(df_expected), "Record counts do not match."
+                
+                if compare_row_values:
+                    pd.testing.assert_frame_equal(df_actual, df_expected, check_dtype=False)
+            
+            logger.info("Query executed successfully.")
+            result.set_success()
+
+        except (TrinoUserError, TrinoQueryError) as e:
+            error_message = f"Query execution failed: {e}\nSQL: {sql_content}"
+            logger.error(error_message)
+            result.set_failure(error_message)
+
+        except Exception as e:
+            error_message = f"An unexpected error occurred: {e}\nSQL: {sql_content}"
+            logger.error(error_message)
+            result.set_failure(error_message)
+
+        self.test_results.append(result)
+
+    def run_all_tests(self):
+        """
+        执行所有测试用例。
+        """
+        test_cases = self.load_test_cases()
+        for test_case in test_cases:
+            self.run_test_case(test_case)
+
+    def generate_report(self):
+        """
+        生成并打印测试报告。
+        """
+        print("\n=== Test Report ===\n")
+        for result in self.test_results:
+            print(f"Test Case: {result.name}")
+            print(f"Status: {result.status}")
+            if result.status == "failure":
+                print(f"Error Message: {result.error_message}")
+            print(f"Duration: {result.get_duration()} seconds\n")
+
+if __name__ == "__main__":
+    # 创建 TestRunner 实例并运行所有测试
+    runner = TestRunner()
+    runner.run_all_tests()
+    runner.generate_report()
+------------------
+python test_runner.py
