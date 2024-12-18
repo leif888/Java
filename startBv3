@@ -1,3 +1,50 @@
+import logging
+from logging.handlers import RotatingFileHandler
+from test_case_result import TestCaseResult  # 导入 TestCaseResult 类
+from pathlib import Path
+import glob
+import yaml
+
+class TestRunner:
+    def __init__(self, config_file="config.yaml"):
+        """
+        初始化 TestRunner 对象，并配置日志记录。
+        
+        :param config_file: 全局配置文件的路径
+        """
+        # 配置日志记录
+        log_filename = "test_runner.log"  # 日志文件名
+        max_bytes = 10 * 1024 * 1024  # 10MB
+        backup_count = 5  # 保留 5 个旧日志文件
+
+        # 创建 RotatingFileHandler
+        handler = RotatingFileHandler(
+            log_filename,
+            maxBytes=max_bytes,
+            backupCount=backup_count,
+            encoding='utf-8'
+        )
+
+        # 设置日志格式
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+
+        # 获取根日志记录器并设置级别
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+
+        # 添加 RotatingFileHandler 到日志记录器
+        logger.addHandler(handler)
+
+        # 读取全局配置文件
+        with open(config_file, 'r') as file:
+            self.global_config = yaml.safe_load(file)
+        
+        # 初始化测试结果列表
+        self.test_results = []
+
+    # ... (其他方法保持不变)
+--------------------------
 def generate_report(self):
         """
         生成并打印所有测试用例的执行结果。
