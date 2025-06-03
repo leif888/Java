@@ -1,0 +1,43 @@
+trading_test_framework/
+├── features/                  # Gherkin 特性文件
+│   ├── trade_processing.feature
+│   ├── trade_approval.feature
+│   └── trade_adjustment.feature
+│
+├── steps/                     # BDD步骤实现
+│   ├── workflow_steps/         # 业务工作流层
+│   │   ├── trade_processing.py
+│   │   ├── trade_approval.py
+│   │   └── trade_adjustment.py
+│   │
+│   ├── component_steps/        # 组件操作层
+│   │   ├── dynamic_form_steps.py
+│   │   ├── menu_steps.py
+│   │   └── auth_steps.py
+│   │
+│   └── conftest.py             # pytest-bdd 共享fixture
+│
+├── components/                # UI组件库
+│   ├── dynamic_form.py         # 动态表单处理器
+│   ├── menu_navigator.py       # 菜单导航引擎
+│   ├── action_executor.py      # 动作执行引擎
+│   └── locator_strategies.py   # 智能定位策略
+│
+├── config/                    # 配置文件
+│   ├── actions_config.yaml     # 操作配置
+│   └── menu_structure.yaml    # 菜单结构
+│
+├── context/                   # 上下文管理
+│   └── trade_context.py        # 交易上下文
+│
+├── utils/                     # 工具类
+│   ├── config_loader.py        # 配置加载器
+│   ├── dynamic_form_recognizer.py # 动态表单识别
+│   └── error_handler.py       # 错误处理器
+│
+├── tests/                     # 单元测试
+│   └── test_components.py      # 组件单元测试
+│
+├── conftest.py                # pytest 全局fixture
+├── pytest.ini                 # pytest 配置
+└── requirements.txt           # Python依赖
