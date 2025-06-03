@@ -1,0 +1,552 @@
+关键组件代码实现
+1. 动态表单组件 (components/dynamic_form.py)
+python
+复制
+from playwright.sync_api import Page
+from .locator_strategies import ResilientLocator
+
+class DynamicFormComponent:
+    def __init__(self, page: Page):
+        self.page = page
+        self.config_loader = ConfigLoader()
+        self.action_config = self.config_loader.get_actions_config()
+    
+    def perform_action(self, action_name: str, data: dict):
+        """执行指定操作并填充动态字段"""
+        config = self.action_config.get(action_name)
+        if not config:
+            raise ValueError(f"未找到操作配置: {action_name}")
+        
+        # 选择操作类型触发动态UI渲染
+        self._select_action_type(action_name, config)
+        
+        # 填充所有动态字段
+        for field in config.get("fields", []):
+            self._fill_field(field, data)
+        
+        # 提交操作
+        if submit_selector := config.get("submit"):
+            self._click_submit(submit_selector)
+    
+    def _select_action_type(self, action_name: str, config: dict):
+        """选择操作类型并等待UI渲染"""
+        # 使用弹性定位策略查找选择器
+        selector = ResilientLocator(config["selector"]).resolve(self.page)
+        selector.click()
+        
+        # 等待动态区域渲染
+        self.page.wait_for_selector("#dynamic-form-area", state="visible")
+        self.page.wait_for_function(
+            "() => !document.querySelector('#dynamic-form-area .loading')"
+        )
+    
+    def _fill_field(self, field: dict, data: dict):
+        """填充单个动态字段"""
+        field_name = field["name"]
+        value = data.get(field_name)
+        
+        if not value:
+            if field.get("required", False):
+                raise ValueError(f"必需字段 '{field_name}' 未提供值")
+            return
+        
+        # 弹性定位字段元素
+        locator = ResilientLocator(field["locator"]).resolve(self.page)
+        
+        # 根据字段类型进行填充
+        match field["type"]:
+            case "text" | "textarea":
+                locator.fill(value)
+            case "select":
+                locator.select_option(value)
+            case "date":
+                self._select_date(locator, value)
+            case "checkbox":
+                locator.set_checked(bool(value))
+            case _:
+                locator.fill(str(value))
+    
+    def _click_submit(self, selector: str):
+        """提交表单操作"""
+        submit_btn = ResilientLocator(selector).resolve(self.page)
+        submit_btn.click()
+        # 等待操作完成
+        self.page.wait_for_timeout(500)  # 等待AJAX请求
+    
+    def _select_date(self, locator, date_str):
+        """特殊处理日期选择器"""
+        locator.click()  # 打开日期选择器
+        self.page.fill(".date-picker-input", date_str)
+        self.page.click("#date-ok-btn")
+2. 智能定位策略 (components/locator_strategies.py)
+python
+复制
+class ResilientLocator:
+    """支持多种定位策略的弹性定位器"""
+    
+    def __init__(self, identifier, timeout=5000):
+        self.identifier = identifier
+        self.timeout = timeout
+    
+    def resolve(self, page):
+        """尝试多种定位策略直到找到可见元素"""
+        strategies = [
+            self._by_test_id,
+            self._by_role,
+            self._by_text,
+            self._by_placeholder,
+            self._by_css,
+            self._by_xpath
+        ]
+        
+        for strategy in strategies:
+            element = strategy(page)
+            if element and self._is_visible(element):
+                return element
+        
+        raise ElementNotFoundError(f"无法定位元素: {self.identifier}")
+    
+    def _by_test_id(self, page):
+        return page.query_selector(f'[data-testid="{self.identifier}"]')
+    
+    def _by_role(self, page):
+        roles = ["button", "textbox", "combobox", "checkbox"]
+        for role in roles:
+            elem = page.query_selector(f'[role="{role}"][aria-label="{self.identifier}"]')
+            if elem:
+                return elem
+    
+    def _by_text(self, page):
+        # 精确匹配文本
+        elem = page.query_selector(f'text="{self.identifier}"')
+        if not elem:
+            # 近似匹配
+            elem = page.query_selector(f'text=/.*{self.identifier}.*/')
+        return elem
+    
+    def _by_placeholder(self, page):
+        return page.query_selector(f'[placeholder="{self.identifier}"]')
+    
+    def _by_css(self, page):
+        return page.query_selector(self.identifier)
+    
+    def _by_xpath(self, page):
+        try:
+            return page.query_selector(f'xpath=//*[contains(., "{self.identifier}")]')
+        except:
+            return None
+    
+    def _is_visible(self, element, timeout=3000):
+        """检查元素是否可见"""
+        try:
+            element.wait_for_element_state("visible", timeout=timeout)
+            return True
+        except:
+            return False
+
+
+class ElementNotFoundError(Exception):
+    """自定义元素未找到异常"""
+    pass
+3. BDD工作流步骤 (steps/workflow_steps/trade_adjustment.py)
+python
+复制
+from pytest_bdd import when, then, parsers
+from components.dynamic_form import DynamicFormComponent
+from context.trade_context import TradeContext
+
+@when(parsers.parse('执行<action_name>操作'))
+def execute_dynamic_action(action_name: str, trade_context: TradeContext):
+    """执行动态表单操作的高级步骤"""
+    form = DynamicFormComponent(trade_context.page)
+    form.perform_action(action_name, trade_context.current_data)
+    
+    # 存储操作结果到上下文
+    trade_context.add_action(action_name)
+
+@then(parsers.parse('操作状态应为<expected_status>'))
+def verify_action_status(expected_status: str, trade_context: TradeContext):
+    """验证操作结果状态"""
+    last_action = trade_context.get_last_action()
+    actual_status = trade_context.page.query_selector("#status-indicator").inner_text()
+    
+    assert actual_status == expected_status, (
+        f"操作 '{last_action}' 状态错误: "
+        f"预期 {expected_status}, 实际 {actual_status}"
+    )
+
+@then(parsers.parse('<field_name>值应为<expected_value>'))
+def verify_field_value(field_name: str, expected_value: str, trade_context: TradeContext):
+    """验证动态表单字段值"""
+    form_component = DynamicFormComponent(trade_context.page)
+    actual_value = form_component.get_field_value(field_name)
+    
+    assert actual_value == expected_value, (
+        f"字段 '{field_name}' 值错误: "
+        f"预期 {expected_value}, 实际 {actual_value}"
+    )
+4. 上下文管理器 (context/trade_context.py)
+python
+复制
+class TradeContext:
+    """交易测试上下文管理器"""
+    
+    def __init__(self, page):
+        self.page = page
+        self.current_data = {}
+        self.action_history = []
+        self.trade_id = None
+        self.config = ConfigLoader().get_full_config()
+    
+    def execute(self, *steps):
+        """执行一系列原子步骤"""
+        for step in steps:
+            # 解析步骤并执行
+            step_name, args = self._parse_step(step)
+            step_func = self._get_step_function(step_name)
+            step_func(*args)
+    
+    def set_test_data(self, data: dict):
+        """设置当前测试数据"""
+        self.current_data = data
+    
+    def add_action(self, action_name: str):
+        """记录执行的操作"""
+        self.action_history.append({
+            "name": action_name,
+            "timestamp": datetime.now().isoformat(),
+            "data": dict(self.current_data)  # 深拷贝当前数据
+        })
+    
+    def get_last_action(self):
+        """获取最近执行的操作"""
+        if self.action_history:
+            return self.action_history[-1]["name"]
+        return None
+    
+    def reset(self):
+        """重置测试上下文"""
+        self.current_data = {}
+        self.action_history = []
+        self.trade_id = None
+    
+    def generate_trade_id(self, trade_type: str) -> str:
+        """生成唯一交易ID"""
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        self.trade_id = f"{trade_type}_{timestamp}_{random.randint(1000,9999)}"
+        return self.trade_id
+    
+    def _parse_step(self, step_str: str) -> tuple:
+        """解析步骤字符串为函数和参数"""
+        if ":" in step_str:
+            step_name, args_str = step_str.split(":", 1)
+            args = [arg.strip() for arg in args_str.split(",")]
+            return step_name.strip(), args
+        return step_str.strip(), []
+    
+    def _get_step_function(self, step_name: str):
+        """根据名称获取步骤函数"""
+        # 实际项目中会实现步骤函数映射
+        raise NotImplementedError()
+5. 配置加载器 (utils/config_loader.py)
+python
+复制
+import yaml
+import os
+
+class ConfigLoader:
+    """配置加载和管理工具"""
+    
+    _instance = None
+    
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super(ConfigLoader, cls).__new__(cls)
+            cls._instance._load_configs()
+        return cls._instance
+    
+    def _load_configs(self):
+        """加载所有配置文件"""
+        self.menu_config = self._load_config("menu_structure.yaml")
+        self.actions_config = self._load_config("actions_config.yaml")
+        self.ui_config = self._load_config("ui_locators.yaml")
+    
+    def _load_config(self, filename: str) -> dict:
+        """加载单个配置文件"""
+        config_path = os.path.join("config", filename)
+        try:
+            with open(config_path, 'r', encoding='utf-8') as file:
+                return yaml.safe_load(file)
+        except FileNotFoundError:
+            raise ConfigNotFoundError(f"配置文件未找到: {filename}")
+        except yaml.YAMLError as e:
+            raise ConfigFormatError(f"YAML格式错误: {filename} - {str(e)}")
+    
+    def get_menu_config(self) -> dict:
+        return self.menu_config
+    
+    def get_actions_config(self) -> dict:
+        return self.actions_config["actions"]
+    
+    def get_action_config(self, action_name: str) -> dict:
+        return self.actions_config["actions"].get(action_name, {})
+    
+    def update_config(self, config_type: str, config_data: dict):
+        """动态更新配置"""
+        if config_type == "actions":
+            self.actions_config["actions"].update(config_data)
+        elif config_type == "menu":
+            self.menu_config.update(config_data)
+        else:
+            raise ValueError(f"不支持的配置类型: {config_type}")
+        
+        # 可选的：保存更改到文件
+        # self._save_config(config_type)
+
+
+class ConfigNotFoundError(Exception):
+    pass
+
+class ConfigFormatError(Exception):
+    pass
+6. 动态表单识别器 (utils/dynamic_form_recognizer.py)
+python
+复制
+from playwright.sync_api import ElementHandle
+from typing import List, Dict
+
+class DynamicFormRecognizer:
+    """自动识别当前可见的表单字段"""
+    
+    def __init__(self, page):
+        self.page = page
+    
+    def capture_form_fields(self) -> List[Dict]:
+        """捕获当前表单的可见字段"""
+        form_area = self.page.query_selector("#dynamic-form-area")
+        if not form_area:
+            return []
+        
+        visible_fields = []
+        # 识别所有可见输入控件
+        inputs = form_area.query_selector_all("input, select, textarea, .custom-input")
+        
+        for element in inputs:
+            if not self._is_element_visible(element):
+                continue
+            
+            field_info = self._analyze_field(element)
+            if field_info:
+                visible_fields.append(field_info)
+        
+        return visible_fields
+    
+    def _is_element_visible(self, element: ElementHandle) -> bool:
+        """检查元素是否可见"""
+        if not element.is_visible():
+            return False
+        
+        # 检查元素是否在视口中
+        box = element.bounding_box()
+        if box["width"] == 0 or box["height"] == 0:
+            return False
+        
+        return True
+    
+    def _analyze_field(self, element: ElementHandle) -> Dict:
+        """分析字段属性"""
+        tag_name = element.evaluate("el => el.tagName.toLowerCase()")
+        field_type = self._detect_field_type(element, tag_name)
+        
+        field_info = {
+            "element": element,
+            "tag": tag_name,
+            "type": field_type,
+            "name": self._get_field_name(element),
+            "is_required": self._is_required(element),
+            "locator": self._generate_best_locator(element)
+        }
+        
+        return field_info
+    
+    def _detect_field_type(self, element: ElementHandle, tag_name: str) -> str:
+        """自动检测字段类型"""
+        if tag_name == "select":
+            return "select"
+        
+        if input_type := element.get_attribute("type"):
+            return input_type
+        
+        # 根据类名推测类型
+        class_names = element.get_attribute("class") or ""
+        if "date-picker" in class_names:
+            return "date"
+        if "currency-input" in class_names:
+            return "currency"
+        
+        return "text"
+    
+    def _get_field_name(self, element: ElementHandle) -> str:
+        """获取字段的标签文本"""
+        # 尝试从关联的label元素获取
+        label_id = element.get_attribute("aria-labelledby")
+        if label_id:
+            label = self.page.query_selector(f"#{label_id}")
+            if label:
+                return label.inner_text().strip(" :*")
+        
+        # 尝试获取placeholder文本
+        if placeholder := element.get_attribute("placeholder"):
+            return placeholder
+        
+        # 尝试获取最近的标签文本
+        parent = element
+        for _ in range(3):  # 向上查找3层
+            parent = parent.query_selector("xpath=..")
+            if not parent:
+                break
+            
+            if text := parent.inner_text():
+                return text.split("\n")[0].strip(" :*")
+        
+        # 使用data-testid作为后备
+        return element.get_attribute("data-testid") or "unknown_field"
+    
+    def _is_required(self, element: ElementHandle) -> bool:
+        """检查字段是否为必填"""
+        if element.evaluate("el => el.required"):
+            return True
+        if "required" in (element.get_attribute("class") or ""):
+            return True
+        
+        # 检查关联标签是否有星号
+        if label := element.query_selector("xpath=./preceding-sibling::label"):
+            if "*" in label.inner_text():
+                return True
+        
+        return False
+    
+    def _generate_best_locator(self, element: ElementHandle) -> str:
+        """生成最佳定位策略"""
+        # 优先使用data-testid
+        if testid := element.get_attribute("data-testid"):
+            return f'[data-testid="{testid}"]'
+        
+        # 其次使用ID
+        if element_id := element.get_attribute("id"):
+            return f"#{element_id}"
+        
+        # 最后使用名称
+        if name := element.get_attribute("name"):
+            return f'[name="{name}"]'
+        
+        # 后备策略：XPath
+        return f'xpath=//*[contains(text(), "{self._get_field_name(element)[:10]}")]'
+功能演示 - 添加新操作类型的工作流
+步骤1: 添加新操作配置 (config/actions_config.yaml)
+yaml
+复制
+actions:
+  # ... 其他操作配置
+  修改交易对手:
+    selector: "修改对手方"
+    fields:
+      - name: "新对手方"
+        type: "select"
+        locator: "#counterparty-select"
+      - name: "变更原因"
+        type: "textarea"
+        locator: ".reason-field"
+    submit: "#submit-counterparty-change"
+步骤2: 创建BDD特性文件 (features/counterparty_change.feature)
+gherkin
+复制
+Feature: 交易对手修改流程
+
+  Scenario Outline: 修改<trade_type>交易的对手方
+    Given 交易员已提交交易ID为<trade_id>
+    When 执行修改交易对手操作
+    And 选择新对手方为<new_counterparty>
+    And 输入变更原因: "<reason>"
+    And 提交变更请求
+    Then 状态显示<expected_status>
+    And 审批队列中出现新的审批请求
+
+    Examples:
+      | trade_type | trade_id     | new_counterparty | reason                     | expected_status |
+      | FX_SPOT    | TRADE_FX001  | Goldman Sachs    | 内部错误                   | 等待审批        |
+      | BOND_SWAP  | TRADE_BD123  | JPMorgan         | 客户要求变更              | 等待审批        |
+步骤3: 添加工作流步骤 (steps/workflow_steps/counterparty.py)
+python
+复制
+from pytest_bdd import when, then
+
+@when("执行修改交易对手操作")
+def execute_counterparty_change(context):
+    context.execute_workflow("修改交易对手")
+
+@when("选择新对手方为<new_counterparty>")
+def select_new_counterparty(context, new_counterparty):
+    context.test_data["新对手方"] = new_counterparty
+
+@when("输入变更原因: {reason}")
+def enter_change_reason(context, reason):
+    context.test_data["变更原因"] = reason
+
+@then("审批队列中出现新的审批请求")
+def verify_approval_request(context):
+    context.navigate_to_menu("审批队列")
+    assert context.page.query_selector(
+        f"text=交易 {context.trade_id}"
+    ).is_visible()
+步骤4: 在测试中使用
+python
+复制
+def test_counterparty_change():
+    # 框架会自动识别配置并执行
+    # 无需额外代码
+    pass
+项目设置步骤
+创建项目结构:
+bash
+复制
+mkdir -p trading_test_framework/{features,steps,components,config,context,utils,tests}
+安装依赖:
+bash
+复制
+pip install pytest pytest-bdd playwright pyyaml
+初始化Playwright:
+bash
+复制
+playwright install
+编写requirements.txt:
+markdown
+复制
+pytest==7.4.0
+pytest-bdd==6.1.1
+playwright==1.38.0
+PyYAML==6.0.1
+添加示例配置(config/actions_config.yaml):
+yaml
+复制
+actions:
+  default:
+    selector: "[data-testid='action-select']"
+  
+  modify_price:
+    selector: "修改价格"
+    fields:
+      - name: "新价格"
+        type: "number"
+        locator: "[data-testid='new-price']"
+      - name: "生效时间"
+        type: "date"
+        locator: "#effective-date-picker"
+    submit: "[data-testid='submit-price-change']"
+创建pytest配置文件(pytest.ini):
+ini
+复制
+[pytest]
+bdd_features_base_dir = features/
+bdd_steps_base_dir = steps/
+这个项目结构提供了完整的框架，特别适合处理复杂金融系统中动态UI交互。通过分层设计和配置驱动的方法，您的测试框架将具备高度可扩展性和维护性，能轻松应对上百个类似但具有细微差别的测试场景。
