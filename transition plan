@@ -1,0 +1,56 @@
+Dev Leader Transition Plan (4 Weeks) – Internal Successor​
+​Successor: [Name], Core Developer (already familiar with systems/team dynamics)
+​Goal: Elevate successor from technical expert to leader while preserving team stability.
+
+​Week 1: Accelerate Context & Leadership Mindset​
+​Expand Beyond Code​
+Share "invisible work" you handle:
+How you prioritize tech debt vs. features (e.g., "We defer X because of client Y").
+Stakeholder negotiation tactics (e.g., "When PM pushes deadlines, I use Z data to push back").
+Walk through ​your leadership toolkit:
+Sprint planning templates, performance review criteria, escalation paths.
+​Delegate Decision-Making​
+Start with low-risk decisions:
+Let them approve non-critical PRs.
+Have them draft the next sprint’s goals (you review).
+Co-lead a backlog refinement session to practice tradeoff discussions.
+​Address Team Concerns​
+Host a ​Q&A session​ where the team asks the successor questions (e.g., "Will our WFH policy change?").
+Privately advise the successor on ​sensitive topics​ (e.g., "Dev A needs gentle feedback; Dev B responds to hard metrics").
+​Weeks 2–3: Hands-On Leadership Transition​
+​Technical Leadership Transfer​
+System ownership:
+"Why Service X is a mess" → Walk through the political reasons (e.g., "CEO insisted on Java despite team’s Python skills").
+Hand over ​admin credentials​ (GitHub owner, CI/CD tokens) with a security briefing.
+Review ​high-impact legacy code​ only they understand:
+"This module breaks if you touch Y config—here’s the 10-year-old ticket explaining why."
+​Run Leadership Simulations​
+Conflict resolution: Role-play a scenario (e.g., "Two devs disagree on architecture—how do you mediate?").
+Have them ​lead a retro​ (you observe and give feedback on facilitation skills).
+​Expose to External Leadership​
+Bring them to ​2–3 executive meetings​ to:
+Explain technical tradeoffs to non-tech leaders.
+Practice saying "no" diplomatically (e.g., "We can do X, but it delays Y—here’s the data").
+​Week 4: Validate & Symbolic Handoff​
+​Stress Test Their Readiness​
+Simulate a ​production outage:
+Lock yourself out of Slack; have them coordinate the response.
+Debrief afterward (e.g., "You forgot to notify the PMO—here’s why it matters").
+​Public Transition Rituals​
+​Email announcement: Highlight their existing contributions (e.g., "They designed our core service—now they’ll guide its evolution").
+​Team vote of confidence: During a sprint demo, have each member share "One thing [Successor] already does well as a leader."
+​Post-Exit Safety Net​
+Pre-schedule ​two 30-minute check-ins​ (e.g., 2 weeks and 1 month post-exit).
+Leave a ​​"In Case of Emergency" doc​ with:
+Vendor contacts (e.g., AWS account manager).
+Your notes on ​team personalities​ (e.g., "Dev C thrives with public praise; Dev D prefers written feedback").
+​Key Adjustments for an Internal Successor:
+​Leverage their existing trust: The team already respects their technical skills—focus on showcasing their leadership judgment.
+​Fast-track technical handoffs: Skip basics; dive into "tribal knowledge" (e.g., "This log entry always lies about the real error").
+​Protect their coding time: Warn them: "You’ll be tempted to keep coding—block calendar time for leadership work."
+​Success Metrics for Internal Hire:
+✅ Successor makes ​3+ strategic decisions​ without your input (e.g., approving an RFC).
+✅ Team’s ​velocity stays stable​ (±10%) post-transition.
+✅ Successor spends ​​<20% time coding​ by Week 4 (verified via time-tracking).
+
+Need help crafting a "30-60-90 Day Plan" for your successor? I can draft a template.
