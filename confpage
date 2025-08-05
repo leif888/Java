@@ -1,0 +1,52 @@
+IT System Documentation Library Structure​
+​1. System Overview​
+Introduction
+Business Objectives
+System Architecture Diagram
+Glossary of Terms
+​2. Requirements​
+Business Requirements
+Functional Requirements
+Non-Functional Requirements
+User Stories
+​3. Technical Documentation​
+System Architecture Design
+Database Schema
+API Documentation
+Integration Interfaces
+Technology Stack
+​4. User Guides​
+Installation Guide
+End-User Manual
+Administrator Guide
+FAQs & Troubleshooting
+​5. Development Documentation​
+Development Environment Setup
+Coding Standards
+Build & Deployment Guide
+Testing Guidelines
+Release Notes
+​6. Operations & Maintenance​
+Monitoring Procedures
+Backup & Recovery
+Performance Tuning
+Security Policies
+Disaster Recovery Plan
+​7. Project Management​
+Project Plan
+Milestones
+Meeting Notes
+Decision Logs
+Risk Assessment
+​8. Change Management​
+Change Log
+Change Request Template
+Version History
+​9. Training Materials​
+Training Videos
+Training Slides
+Hands-on Exercises
+​10. References​
+Related Documents
+Third-Party Documentation
+Standards & Compliance
