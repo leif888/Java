@@ -1,0 +1,140 @@
+-- Dynamic Field Management System - Database Schema
+-- Comparison between JSON Fields vs EAV + Metadata approaches
+
+-- Create database (run separately if needed)
+-- CREATE DATABASE dynamic_field_comparison;
+
+-- ============================================================================
+-- APPROACH 1: JSON Fields Approach
+-- ============================================================================
+
+-- Entity types with JSON schema definition
+CREATE TABLE json_entity_types (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    json_schema JSONB NOT NULL, -- JSON Schema for validation
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Entities with dynamic fields stored as JSON
+CREATE TABLE json_entities (
+    id SERIAL PRIMARY KEY,
+    entity_type_id INTEGER NOT NULL REFERENCES json_entity_types(id) ON DELETE CASCADE,
+    name VARCHAR(200) NOT NULL,
+    dynamic_fields JSONB NOT NULL DEFAULT '{}', -- All dynamic fields as JSON
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for JSON approach
+CREATE INDEX idx_json_entities_type ON json_entities(entity_type_id);
+CREATE INDEX idx_json_entities_dynamic_fields ON json_entities USING GIN (dynamic_fields);
+CREATE INDEX idx_json_entity_types_name ON json_entity_types(name);
+
+-- ============================================================================
+-- APPROACH 2: EAV (Entity-Attribute-Value) + Metadata Approach
+-- ============================================================================
+
+-- Entity types definition
+CREATE TABLE eav_entity_types (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Attribute metadata definition
+CREATE TABLE eav_attributes (
+    id SERIAL PRIMARY KEY,
+    entity_type_id INTEGER NOT NULL REFERENCES eav_entity_types(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    display_name VARCHAR(200),
+    data_type VARCHAR(50) NOT NULL, -- 'string', 'integer', 'decimal', 'boolean', 'date', 'text'
+    is_required BOOLEAN DEFAULT FALSE,
+    default_value TEXT,
+    validation_rules JSONB, -- Additional validation rules
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(entity_type_id, name)
+);
+
+-- Entities
+CREATE TABLE eav_entities (
+    id SERIAL PRIMARY KEY,
+    entity_type_id INTEGER NOT NULL REFERENCES eav_entity_types(id) ON DELETE CASCADE,
+    name VARCHAR(200) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Attribute values (EAV pattern)
+CREATE TABLE eav_attribute_values (
+    id SERIAL PRIMARY KEY,
+    entity_id INTEGER NOT NULL REFERENCES eav_entities(id) ON DELETE CASCADE,
+    attribute_id INTEGER NOT NULL REFERENCES eav_attributes(id) ON DELETE CASCADE,
+    string_value TEXT,
+    integer_value BIGINT,
+    decimal_value DECIMAL(20,6),
+    boolean_value BOOLEAN,
+    date_value DATE,
+    text_value TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(entity_id, attribute_id)
+);
+
+-- Indexes for EAV approach
+CREATE INDEX idx_eav_entities_type ON eav_entities(entity_type_id);
+CREATE INDEX idx_eav_attributes_entity_type ON eav_attributes(entity_type_id);
+CREATE INDEX idx_eav_attribute_values_entity ON eav_attribute_values(entity_id);
+CREATE INDEX idx_eav_attribute_values_attribute ON eav_attribute_values(attribute_id);
+CREATE INDEX idx_eav_attribute_values_string ON eav_attribute_values(string_value) WHERE string_value IS NOT NULL;
+CREATE INDEX idx_eav_attribute_values_integer ON eav_attribute_values(integer_value) WHERE integer_value IS NOT NULL;
+CREATE INDEX idx_eav_attribute_values_decimal ON eav_attribute_values(decimal_value) WHERE decimal_value IS NOT NULL;
+CREATE INDEX idx_eav_attribute_values_date ON eav_attribute_values(date_value) WHERE date_value IS NOT NULL;
+
+-- ============================================================================
+-- Performance Monitoring Tables
+-- ============================================================================
+
+-- Query performance tracking
+CREATE TABLE performance_metrics (
+    id SERIAL PRIMARY KEY,
+    approach VARCHAR(10) NOT NULL, -- 'JSON' or 'EAV'
+    operation VARCHAR(50) NOT NULL, -- 'CREATE', 'READ', 'UPDATE', 'DELETE', 'SEARCH'
+    query_type VARCHAR(100), -- Description of query type
+    execution_time_ms INTEGER NOT NULL,
+    record_count INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_performance_metrics_approach ON performance_metrics(approach);
+CREATE INDEX idx_performance_metrics_operation ON performance_metrics(operation);
+CREATE INDEX idx_performance_metrics_created_at ON performance_metrics(created_at);
+
+-- ============================================================================
+-- Functions and Triggers for Updated Timestamps
+-- ============================================================================
+
+-- Function to update timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Triggers for JSON approach
+CREATE TRIGGER update_json_entity_types_updated_at BEFORE UPDATE ON json_entity_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_json_entities_updated_at BEFORE UPDATE ON json_entities FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Triggers for EAV approach
+CREATE TRIGGER update_eav_entity_types_updated_at BEFORE UPDATE ON eav_entity_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_eav_attributes_updated_at BEFORE UPDATE ON eav_attributes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_eav_entities_updated_at BEFORE UPDATE ON eav_entities FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_eav_attribute_values_updated_at BEFORE UPDATE ON eav_attribute_values FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
