@@ -37,13 +37,20 @@ Introduction and Usage of PyTorch
 3.3 Deep Learning Applications
 Computer Vision (Image Recognition, Object Detection, Image Generation, etc.)
 Natural Language Processing (Text Classification, Machine Translation, Speech Recognition, etc.)
-4. Artificial General Intelligence (AGI)
-4.1 Concepts and Vision of AGI
-Definition and Goals of AGI
-Challenges in Achieving AGI
-4.2 AGI Research Progress
-Current Research Directions and Achievements
-Introduction to Relevant Projects
+4. Artificial Intelligence Generated Content (AIGC)​
+4.1 Concepts and Core Principles of AIGC​
+Definition and Key Characteristics of AIGC (e.g., autonomy, diversity of generated content)​
+Technical Foundations of AIGC (e.g., based on LLMs, diffusion models, GANs)​
+4.2 Mainstream AIGC Categories and Applications​
+Text Generation (Articles, Marketing Copy, Creative Writing, etc.)​
+Image/Video Generation (Design Assets, Short Videos, Artistic Creations, etc.)​
+Audio Generation (Background Music, Voiceovers, Sound Effects, etc.)​
+Multimodal Content Generation (Combined Text-Image-Video Works)​
+4.3 Popular AIGC Tools and Platforms​
+Text-Centric Tools (ChatGPT, Claude, Doubao Text Generator, etc.)​
+Image-Centric Tools (MidJourney, DALL-E, Stable Diffusion, etc.)​
+Video-Centric Tools (Runway ML, Pika Labs, etc.)​
+Enterprise-Grade AIGC Platforms (Introduction to Features and Usage Scenarios)
 5. Large Language Models (LLM)
 5.1 LLM Fundamentals
 Definition and Characteristics of LLMs
