@@ -1,0 +1,263 @@
+总结与操作建议
+如果你想了解... | 你应该去... | 内容重点
+
+​是什么？为什么用？如何选型？​​|  ​3. System Architecture-> 3.4 Messaging...​ | 概念、原理、架构模式、技术对比
+
+​如何在Java代码里用它？​​| ​2. Backend Development-> 2.8 Communication...​ | 客户端库集成、编码模式、配置
+
+​如何把它部署到服务器？​​| ​6. CI/CD & DevOps​ -> 相关子目录 |  容器化、编排、监控、运维
+
+2. Backend Development (Java-Centric)​​
+​2.1 Java Backend Overview & Philosophy​
+•
+Why Java for Backend?
+
+•
+JVM Ecosystem Advantages
+
+•
+Evolution of Java Backend Development (J2EE to Spring Boot)
+
+​2.2 Core Java for Backend Developers​
+•
+​Link to: 5.1.1 Java Core & Fundamentals​
+
+•
+​Link to: 5.1.2 Advanced Java​
+
+•
+Essential Java Features for Backend
+
+•
+Java Version Adoption Guide (LTS versions)
+
+​2.3 Spring Framework Ecosystem​
+​2.3.1 Spring Framework Core​
+•
+Inversion of Control (IoC) & Dependency Injection (DI)
+
+•
+Aspect-Oriented Programming (AOP)
+
+•
+Spring MVC Deep Dive
+
+•
+Transaction Management
+
+​2.3.2 Spring Boot​
+•
+Auto-configuration Mechanism
+
+•
+Starter Dependencies
+
+•
+Spring Boot Actuator & Production-ready Features
+
+•
+Externalized Configuration & Profiles
+
+•
+Embedded Container Configuration
+
+​2.3.3 Spring Data & Persistence​
+•
+Spring Data JPA
+
+•
+Spring Data MongoDB
+
+•
+Spring Data Redis
+
+•
+Transaction Management with Spring
+
+​2.3.4 Spring Security​
+•
+Authentication & Authorization
+
+•
+OAuth 2.0 Resource Server
+
+•
+Method Security
+
+•
+Custom Security Configurations
+
+​2.3.5 Testing with Spring​
+•
+Spring TestContext Framework
+
+•
+@SpringBootTest
+
+•
+Mocking with @MockBean
+
+•
+Test Slices (@DataJpaTest, @WebMvcTest)
+
+​2.4 Web & API Development​
+​2.4.1 RESTful API Development​
+•
+REST Principles with Spring
+
+•
+ResponseEntity & @RestController
+
+•
+API Versioning Strategies
+
+•
+HATEOAS with Spring HATEOAS
+
+​2.4.2 API Documentation​
+•
+Spring REST Docs
+
+•
+Springdoc OpenAPI (Swagger)
+
+•
+API Design Guidelines
+
+​2.4.3 Alternative API Paradigms​
+•
+GraphQL with Spring (if applicable)
+
+•
+gRPC with Spring (if applicable)
+
+​2.5 Data Access & Persistence​
+•
+​Link to: 8. Data & Persistence​
+
+•
+JPA/Hibernate Best Practices
+
+•
+MyBatis Integration
+
+•
+Connection Pooling (HikariCP)
+
+•
+Database Migration Tools (Flyway, Liquibase)
+
+​2.6 Security Implementation​
+•
+Authentication Strategies (JWT, Session-based)
+
+•
+Authorization Patterns
+
+•
+OAuth 2.0 Implementation
+
+•
+Common Security Vulnerabilities & Prevention
+
+•
+Security Headers Configuration
+
+​2.7 Performance Optimization​
+•
+JVM Tuning for Backend Applications
+
+•
+Caching Strategies (Spring Cache, Redis)
+
+•
+Database Optimization
+
+•
+Connection Pool Tuning
+
+•
+Monitoring GC & Memory Usage
+
+​2.8 Testing Strategy​
+•
+Unit Testing (JUnit 5, Mockito)
+
+•
+Integration Testing
+
+•
+End-to-End Testing
+
+•
+Test Containers for Integration Tests
+
+•
+Performance Testing
+
+​2.9 Build & Deployment​
+•
+Maven/Gradle for Backend Projects
+
+•
+Dockerizing Java Applications
+
+•
+Docker Compose for Local Development
+
+•
+Multi-stage Docker Builds
+
+•
+JAR vs WAR Packaging
+
+​2.10 Production Considerations​
+•
+Health Checks & Readiness Probes
+
+•
+Metrics Exposure (Prometheus)
+
+•
+Logging Strategies (Logback, JSON Logging)
+
+•
+Distributed Tracing Integration
+
+•
+Graceful Shutdown
+
+​2.11 Microservices Patterns (Optional)​​
+•
+​Link to: 3. System Architecture → 3.1.2 Microservices​
+
+•
+Spring Cloud Overview
+
+•
+Service Discovery Patterns
+
+•
+API Gateway Patterns
+
+•
+Configuration Management
+
+•
+Circuit Breakers & Resilience
+
+​2.12 Best Practices & Patterns​
+•
+Project Structure Guidelines
+
+•
+Package Organization
+
+•
+Exception Handling Strategies
+
+•
+Validation Patterns
+
+•
+Code Review Guidelines for Java Backend
