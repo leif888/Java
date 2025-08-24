@@ -1,0 +1,81 @@
+AI-Related Confluence Page Outline
+1. AI Fundamentals and Overview
+1.1 What is AI
+Definition and Basic Concepts
+Evolution of AI (from Early Theories to Modern Breakthroughs)
+1.2 Relationship Between AI and Other Technologies
+AI and Computer Science
+AI and Mathematics (Probability Theory, Statistics, etc.)
+1.3 AI Application Domains
+Healthcare (Disease Diagnosis, Drug Discovery, etc.)
+Finance (Risk Prediction, Trading Algorithms, etc.)
+Transportation (Autonomous Driving, etc.)
+Manufacturing (Smart Production, Quality Inspection, etc.)
+2. Machine Learning
+2.1 Fundamental Concepts of Machine Learning
+Definition and Core Principles
+Supervised Learning (Introduction to Classification and Regression Algorithms)
+Unsupervised Learning (Introduction to Clustering and Dimensionality Reduction Algorithms)
+Overview of Semi-Supervised Learning and Reinforcement Learning
+2.2 Detailed Explanation of Machine Learning Algorithms
+Decision Trees and Random Forests
+Support Vector Machines (SVM)
+Naive Bayes Algorithm
+K-Nearest Neighbors (KNN) Algorithm
+2.3 Machine Learning Model Training and Evaluation
+Data Preprocessing (Cleaning, Feature Engineering, etc.)
+Model Selection and Tuning
+Evaluation Metrics (Accuracy, Recall, F1-Score, etc.)
+3. Deep Learning
+3.1 Deep Learning Fundamentals
+Introduction to Artificial Neural Networks
+Neural Network Architectures (Feedforward Neural Networks, Recurrent Neural Networks (RNN), Long Short-Term Memory (LSTM) Networks, etc.)
+Activation Functions and Backpropagation Algorithm
+3.2 Deep Learning Frameworks
+Introduction and Usage of TensorFlow
+Introduction and Usage of PyTorch
+3.3 Deep Learning Applications
+Computer Vision (Image Recognition, Object Detection, Image Generation, etc.)
+Natural Language Processing (Text Classification, Machine Translation, Speech Recognition, etc.)
+4. Artificial General Intelligence (AGI)
+4.1 Concepts and Vision of AGI
+Definition and Goals of AGI
+Challenges in Achieving AGI
+4.2 AGI Research Progress
+Current Research Directions and Achievements
+Introduction to Relevant Projects
+5. Large Language Models (LLM)
+5.1 LLM Fundamentals
+Definition and Characteristics of LLMs
+Pre-training and Fine-tuning Mechanisms
+5.2 Introduction to Mainstream LLMs
+GPT Series (GPT-3, GPT-4, etc.)
+ERNIE Bot
+Tongyi Qianwen
+5.3 LLM Application Development
+Dialogue System Development
+Text Generation Application Development
+6. AI Programming Tools
+6.1 GitHub Copilot
+Feature Introduction (Code Completion, Code Generation, etc.)
+How to Use GitHub Copilot in Development
+Practical Case Demonstrations
+6.2 DeepSeek
+Features and Characteristics of DeepSeek (e.g., Advantages in Deep Learning Model Training and Inference)
+Application Scenarios and Usage Tutorials
+7. AI Ethics and Security
+7.1 AI Ethical Issues
+Bias and Fairness
+Privacy Protection
+Responsibility Attribution
+7.2 AI Security
+Adversarial Attacks and Defense
+Model Security and Protection
+8. AI Project Practice
+8.1 Machine Learning-Based Project Cases
+Project Background and Objectives
+Data Processing and Model Selection
+Project Implementation and Result Analysis
+8.2 Deep Learning-Based Project Cases
+Image Recognition Project Practice
+Natural Language Processing Project Practice
