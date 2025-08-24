@@ -1,3 +1,124 @@
+5. Programming Languages​ -> ​5.1 Java​
+​5.1.1 Java Core & Fundamentals​
+​5.1.2 Advanced Java​
+​5.1.3 JDK Version History & Features (新增目录)​​
+•
+​5.1.3.1 JDK 8 (LTS) - The Modern Java Revolution​
+
+•
+Lambdas and Functional Interfaces
+
+•
+Stream API
+
+•
+Optional
+
+•
+Default Methods in Interfaces
+
+•
+New Date and Time API (java.time)
+
+•
+Nashorn JavaScript Engine
+
+•
+​5.1.3.2 JDK 11 (LTS) - The Modular & Cloud-Forward Release​
+
+•
+HTTP Client (Standard)
+
+•
+Launch Single-File Source-Code Programs (java Script.java)
+
+•
+Epsilon: A No-Op Garbage Collector
+
+•
+Removal of Java EE and CORBA Modules
+
+•
+Local-Variable Syntax for Lambda Parameters (varin lambdas)
+
+•
+​5.1.3.3 JDK 17 (LTS) - The Mature Modern Java​
+
+•
+Sealed Classes and Interfaces
+
+•
+Pattern Matching for instanceof
+
+•
+Restore Always-Strict Floating-Point Semantics
+
+•
+New macOS Rendering Pipeline
+
+•
+Deprecate Applet API for Removal
+
+•
+Strongly Encapsulate JDK Internals
+
+•
+​5.1.3.4 JDK 21 (LTS) - The Concurrency Revolution​
+
+•
+Virtual Threads (Project Loom)
+
+•
+Structured Concurrency
+
+•
+Scoped Values
+
+•
+Sequenced Collections
+
+•
+Pattern Matching for switch(Final)
+
+•
+Record Patterns
+
+•
+Key encapsulation mechanism API
+
+•
+​5.1.3.5 Interim JDK Versions (非LTS版本关键特性)​​
+
+•
+​JDK 9: Project Jigsaw - The Module System
+
+•
+​JDK 10: Local-Variable Type Inference (var)
+
+•
+​JDK 12-16: Preview Features that matured in LTS releases (e.g., Switch Expressions, Text Blocks, Records)
+
+•
+​5.1.3.6 Migration & Upgrade Guides (迁移与升级指南)​​
+
+•
+General Upgrade Best Practices
+
+•
+Migrating from JDK 8 to 11+
+
+•
+Migrating from JDK 11 to 17+
+
+•
+Common Breaking Changes and Deprecations
+
+•
+Tooling Support (IDE, Build Tools)
+
+​5.1.4 Enterprise Frameworks & Libraries​ (Spring, Hibernate, etc.)
+​5.1.5 Build & Dependency Management​ (Maven, Gradle)
+============================
 总结与操作建议
 如果你想了解... | 你应该去... | 内容重点
 
