@@ -1,3 +1,93 @@
+您发现了一个非常核心的问题！这正是构建知识库时最常见的挑战：​同一个知识点可能从属于多个分类维度。
+
+Java 既是一种编程语言（属性）​，又是后端开发的主要工具（用途）​。强行将它只归入一类会导致另一个分类的不完整。
+
+解决方案不是“二选一”，而是采用 ​​“主从分类 + 交叉引用”​​ 的策略。
+
+核心原则：区分“知识存放地”和“知识入口”
+•
+​知识的家 (Home)​: 一份知识应该只有一个主要的存放位置，避免重复维护。
+
+•
+​知识的入口 (Entry Point)​: 可以从多个相关的地方链接和引用这份知识，方便查找。
+
+推荐方案：明确主次，建立链接
+1. 确定主分类：Java 的家
+​Java 的核心知识（语法、特性、JVM 原理等）应该放在 5. Programming Languages下。​​
+
+​理由：​​
+
+•
+​属性 > 用途​：Java 首先是一种语言，其次才被用于后端、安卓、大数据等场景。其语言特性是根本。
+
+•
+​避免重复​：如果后端目录下也放一套完整的 Java 语法，那么当 Java 21 发布了新特性时，你需要更新两个地方，维护成本翻倍。
+
+•
+​共享性​：Android 开发、桌面程序开发等其他领域的开发者也需要查阅 Java 语言知识，他们不会去 Backend Development目录里找。
+
+因此，您之前设计的 5.1 Java目录结构（包含 Core, Advanced, Frameworks）应该作为 Java 知识的唯一主目录。
+
+2. 在从分类中建立入口和视图
+在 2. Backend Development中，不应该复制 Java 的语法知识，而是应该提供针对后端开发的、视角不同的内容，并链接回主目录。
+
+​可以这样设计 2. Backend Development：​
+## 2. Backend Development
+
+### 2.1 Technology Stack Selection (技术栈选型)
+*   **Java/JVM 系** (Spring, Micronaut, Quarkus) <- **这里提供一个链接，指向 `5.1 Java`**
+*   **Node.js 系** (Express, NestJS, Koa)
+*   **Go 系** (Gin, Echo, Beego)
+*   **Python 系** (Django, Flask, FastAPI)
+*   **PHP 系** (Laravel, Symfony)
+*   **选型考量因素** (性能、生态、团队技能、社区活跃度)
+
+### 2.2 API Design & Development (API 设计与开发)
+*   RESTful API 设计规范
+*   GraphQL 入门与实践
+*   gRPC 入门与实践
+*   API 版本管理策略
+*   API 文档管理 (OpenAPI/Swagger)
+
+### 2.3 Backend Frameworks in Depth (后端框架深入)
+*   **2.3.1 Java Ecosystem (Java 生态)**
+    *   **Spring Boot 最佳实践** (配置、日志、异常处理、定制化)
+    *   **Spring MVC 与 WebFlux 对比** (阻塞 vs. 非阻塞)
+    *   **数据持久层技术选型** (JPA vs. MyBatis) <- **链接到 `5.1.3`**
+    *   **事务管理最佳实践** (声明式事务、传播机制、隔离级别)
+    *   **Java 后端项目结构与规范** (Package 划分、DTO/DO 转换)
+*   2.3.2 Node.js Ecosystem
+*   2.3.3 Go Ecosystem
+
+### 2.4 Authentication & Security (认证与安全)
+### 2.5 Performance Optimization (性能优化)
+### ... (其他后端通用主题)
+
+总结与操作建议
+1.
+​在 5. Programming Languages下​：建立完整、通用的 Java 知识体系（语言特性、JVM、并发、ClassLoader 等）。
+
+2.
+​在 2. Backend Development下​：
+
+•
+在 2.1 Technology Stack Selection中，将 Java 作为其中一个选项，并链接到 5.1 Java。
+
+•
+在 2.3 Backend Frameworks下创建 2.3.1 Java Ecosystem，这里不讲解 Java 语法，只分享 ​如何用 Java 及相关框架（Spring）进行后端开发的特定经验、最佳实践和坑点记录。遇到需要底层知识时（如“如何优化 JVM 参数来应对高并发”），就链接到 5.1.2.2(JMM & Performance Tuning)​。
+
+3.
+​充分利用 Confluence 的功能​：
+
+•
+​使用 Link​：在页面中大量使用内部链接。
+
+•
+​使用 Content by Label宏​：给 5.1 Java的页面打上 backend标签，然后在 2. Backend Development的某个目录下用这个宏动态显示所有带此标签的页面。这是最优雅的解决方案。
+
+•
+​使用 Page Tree宏​：在 2. Backend Development的页面上嵌入 5.1 Java的页面树，提供一种导航视图。
+
 AI-Related Confluence Page Outline
 1. AI Fundamentals and Overview
 1.1 What is AI
