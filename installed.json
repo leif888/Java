@@ -1,0 +1,10 @@
+{
+	"version": 1,
+	"installed": [
+		{
+			"pluginUri": "file:///c%3A/Users/DELL/.vscode/agent-plugins/github.com/obra/superpowers",
+			"marketplace": "https://github.com/obra/superpowers",
+			"name": "superpowers"
+		}
+	]
+}
