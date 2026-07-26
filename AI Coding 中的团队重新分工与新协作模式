@@ -1,0 +1,416 @@
+## AI Coding 中的团队重新分工与新协作模式——AI Coding 时代的人、岗位与组织
+
+> 作者：莫欣 moxin@agently.tech
+
+### 🧭 核心内容
+
+先把结论摆这儿：AI Coding 这次带来的，不是"工具更快了"这么简单。它把我们的工作重心，从写代码本身，挪到了两头——前面的定义（spec，控制要做什么、什么算对），和后面的验收（test，控制做出来对不对）。而这两头，在过去的分工里本来就不全是一线开发在管，是分散在技术 Leader、产品、测试、运维手里的。所以要重新安排的，不是哪一个岗位，而是一整条分工链。
+
+这篇讲义，顺着下面这条线一段段聊：
+
+- 一个分析方法——遇到"团队怎么变"，先问生产力哪儿变了
+- 核心变化点：重心从"写"挪到"定义 + 验收"
+- 这两头原本是谁的活
+- 一个能摸到的信号：技术 Leader 对一线开发的期望变了
+- 历史上同样的事：蒸汽机、电子表格、ATM、福特流水线
+- 个人怎么应对：三个新身份、管理视角、科学管理、多问为什么
+- 组织的旧分工，地基是三层架构
+- 新的分工：按功能模块、全栈与 FDE，以及为什么团队反而更要凝聚
+- 几个可以用的自查问题
+
+<style>
+  .cell-output-html div { box-sizing: border-box !important; }
+  .cell-output-html table { max-width: 100%; overflow-x: auto; display: block; }
+</style>
+
+### 🧭 一个分析方法：先问"生产力哪儿变了"
+
+前两课聊下来，AI Coding 能干什么、能扛多复杂的问题，你大概已经有体感了。我们就基于这个前提往下走。
+
+生产力改变生产关系，这话我们都知道。但光知道这一句没什么用。得再追一句——这次生产力，核心到底变在哪一个点上？它又会怎么把我们的生产关系，带着一起变？
+
+<div style="background:#E8F4FD;border-left:4px solid #2196F3;border-radius:6px;padding:14px 18px;margin:16px 0;color:#1a1a1a">
+<strong>核心观点</strong>：遇到"团队该怎么变""我这岗位会不会没了"这种问题，先别急着给岗位换标签、给组织画新架构。先问一句——<strong>生产力，到底哪儿变了？</strong> 再顺着往下推：从变化推后果，从后果推对策。
+</div>
+
+这么问的好处是，它不靠任何人对未来的预言。岗位最后怎么变、组织长成什么样，谁也说不准；但"生产力的哪个点变了"，是现在就看得清的。从看得清的地方起步，比一上来去换一堆新名词靠谱。
+
+前两课其实都在实践这个方法。第一课，一个人怎么用 SDD 加 TDD，让 AI 写得快又信得过；第二课，大项目里怎么用特征测试做安全重构、用 GitHub 管线管住 AI 的产出。落点不同，但起点是同一个——先看清 AI 把哪段活接走了，人再决定站到哪儿去。
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;font-size:14px;max-width:100%;box-sizing:border-box">
+<span style="flex:1 1 0;min-width:0;background:#E8F0FE;color:#174ea6;border:1px solid #4285F4;border-radius:6px;padding:8px 14px;font-weight:600;box-sizing:border-box;white-space:nowrap">生产力哪儿变了</span>
+<span style="color:#90A4AE;font-size:18px;flex-shrink:0">→</span>
+<span style="flex:1 1 0;min-width:0;background:#E8F0FE;color:#174ea6;border:1px solid #4285F4;border-radius:6px;padding:8px 14px;font-weight:600;box-sizing:border-box;white-space:nowrap">多问为什么</span>
+<span style="color:#90A4AE;font-size:18px;flex-shrink:0">→</span>
+<span style="flex:1 1 0;min-width:0;background:#E8F0FE;color:#174ea6;border:1px solid #4285F4;border-radius:6px;padding:8px 14px;font-weight:600;box-sizing:border-box;white-space:nowrap">推生产关系怎么变</span>
+</div>
+
+> ℹ️ **想一想**：最近半年，你自己写代码的时间，和审 AI 写的代码的时间，比例变了吗？
+
+### ⚙️ 重心从"写代码"挪到了"定义"和"验收"
+
+<div style="background:#E8F4FD;border-left:4px solid #2196F3;border-radius:6px;padding:14px 18px;margin:16px 0;color:#1a1a1a">
+<strong>核心观点</strong>：这次生产力的变化点很具体：AI 把"写代码"这件事的成本，打到了极低。由此带来的生产关系变化是——我们的工作重心，从<strong>写代码本身</strong>，挪到了两头：前面的 <strong>spec（定义控制：要做什么、什么算对）</strong>，和后面的 <strong>test（验收控制：做出来对不对）</strong>。
+</div>
+
+还记得前两课我们反复在说的那条线吗？尤其是传统开发者，工作重心已经在悄悄移位了——从代码撰写本身，挪到了 spec 和 test 这两个方向。
+
+为什么是这两头？因为 AI 把"写"这件事的成本打到了很低。一段实现，过去要人一行行敲，现在交给它就能生成。中间这段被接管之后，真正稀缺的，就变成了两头的能力：前面，你得把"要做什么、什么算对"定义清楚，AI 才有照着做的依据；后面，你得判断"它做出来的到底对不对"，因为它不会替你为结果负责。
+
+说白了，我们的价值，正在从"把它写出来"，转到"把它定义清楚 + 把它验收住"。
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:14px 0;font-size:14px;text-align:center;max-width:100%;box-sizing:border-box">
+<span style="background:#ECEFF1;color:#37474F;border:1px solid #B0BEC5;border-radius:6px;padding:8px 12px;box-sizing:border-box">需求</span>
+<span style="color:#90A4AE;font-size:18px;flex-shrink:0">→</span>
+<span style="background:#F1F8E9;color:#1B5E20;border:2px solid #43A047;border-radius:6px;padding:8px 12px;font-weight:700;box-sizing:border-box">定义 / spec<br><span style="font-weight:400;font-size:12px;color:#558B2F">人的新重心</span></span>
+<span style="color:#90A4AE;font-size:18px;flex-shrink:0">→</span>
+<span style="background:#ECECEC;color:#9E9E9E;border:1px dashed #BDBDBD;border-radius:6px;padding:8px 12px;box-sizing:border-box">实现<br><span style="font-size:12px">AI 接管</span></span>
+<span style="color:#90A4AE;font-size:18px;flex-shrink:0">→</span>
+<span style="background:#F1F8E9;color:#1B5E20;border:2px solid #43A047;border-radius:6px;padding:8px 12px;font-weight:700;box-sizing:border-box">验收 / test<br><span style="font-weight:400;font-size:12px;color:#558B2F">人的新重心</span></span>
+<span style="color:#90A4AE;font-size:18px;flex-shrink:0">→</span>
+<span style="background:#ECEFF1;color:#37474F;border:1px solid #B0BEC5;border-radius:6px;padding:8px 12px;box-sizing:border-box">上线</span>
+</div>
+
+以前写一个功能，是你打开 IDE 一行行敲；现在是你把要求说清楚，AI 生成，你来看对不对。同一段实现代码，你的角色从"作者"变成了"审稿人"——上面那张图，说的就是这件事。
+
+<img src="assets/spec_process.png" style="max-width:100%;border:1px solid #ddd;border-radius:6px;margin:6px 0">
+
+<div style="text-align:center;color:#666;font-size:12px;margin-top:4px">Spec 文档的生产过程：左边「开工前要定义（spec / define / plan）」，右边「交付前要验证（verify）」，中间的实现交给 AI。</div>
+
+### 🧩 这两头的活，原本是谁干的
+
+<div style="background:#FFF3E0;border-left:4px solid #FF9800;border-radius:6px;padding:14px 18px;margin:16px 0;color:#1a1a1a">
+<strong>核心观点</strong>：spec 和 test 这两头，在传统分工里本来就不全是一线开发的主场——它分散在技术 Leader、产品团队、测试团队、运维团队手里。AI 现在的工作重心，和这些角色原有的一部分职能重叠了。
+</div>
+
+我们再想想：spec 和 test 这两头的活，在传统分工里，到底是谁在干？
+
+定义这头，产品团队定需求和方案，技术 Leader 把它拆成相对清晰、可交付的任务；验收这头，测试团队管质量门禁，运维团队管上线之后的稳定。一线开发夹在中间，拿着文档，把实现敲出来。
+
+现在 AI 把"中间敲实现"这段接走了，整条链的重心往两头压。这就意味着：原本在整条链上、和 AI 工作重心重叠的那部分职能，精力分配比例需要被"重构"。不是哪个岗位被裁掉，而是每个角色原来花在"传话、转译、敲实现"上的精力，得挪到"把规格写清楚、把质量卡到位"上。
+
+所以这件事更准确的说法，不是"AI 抢了谁的活"，而是——原本分散在好几个角色里的某一类活被 AI 接走了，剩下的人，精力重心得重新摆。
+
+<div style="margin:14px 0;font-size:14px;max-width:100%;box-sizing:border-box">
+  <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:stretch">
+    <div style="flex:1 1 120px;min-width:0;background:#F1F8E9;border:2px solid #43A047;border-radius:8px;padding:12px;box-sizing:border-box">
+      <div style="color:#1B5E20;font-weight:700;margin-bottom:6px">定义这头</div>
+      <div style="color:#33691E;line-height:1.7">产品 —— 定需求和方案<br>技术 Leader —— 拆成可交付的任务</div>
+    </div>
+    <div style="flex:1 1 120px;min-width:0;background:#ECECEC;border:1px dashed #BDBDBD;border-radius:8px;padding:12px;box-sizing:border-box">
+      <div style="color:#9E9E9E;font-weight:700;margin-bottom:6px">中间 · 敲实现</div>
+      <div style="color:#9E9E9E;line-height:1.7">一线开发<br>（这段 AI 接管了一大块）</div>
+    </div>
+    <div style="flex:1 1 120px;min-width:0;background:#F1F8E9;border:2px solid #43A047;border-radius:8px;padding:12px;box-sizing:border-box">
+      <div style="color:#1B5E20;font-weight:700;margin-bottom:6px">验收这头</div>
+      <div style="color:#33691E;line-height:1.7">测试 —— 质量门禁<br>运维 —— 上线后的稳定</div>
+    </div>
+  </div>
+  <div style="text-align:center;color:#E65100;margin-top:10px;font-size:13px">AI 的工作重心，和两头的绿色区域重叠 —— 这些活的精力，要重新分配</div>
+</div>
+
+### 🔎 一个能摸到的信号：技术 Leader 的期望变了
+
+<div style="background:#E8F4FD;border-left:4px solid #2196F3;border-radius:6px;padding:14px 18px;margin:16px 0;color:#1a1a1a">
+<strong>核心观点</strong>：光说"重心在迁移"还是有点虚。有一个能实实在在摸到的信号——技术 Leader 对一线开发的期望，跟以前不一样了。
+</div>
+
+以前，技术 Leader 对一线开发的期望，大概是这样：给你一份说明相对清晰的文档，你能按文档交付相对准确的实现。如果过程里，你还能主动把模糊的信息对齐——拉产品、拉业务开个会问清楚——或者基于对业务的理解做点优化（给个更优雅的方案、更好看的界面），那是加分项。
+
+现在呢？期望换了：你能独立负责一个功能块，能把这个功能块的场景、流程、期望结果，反讲一遍；很多时候，不再有一份喂到嘴边的详细文档了。你的责任，从"把代码写对"，变成了对这个功能的结果和效果负责。
+
+为什么会有这种变化？因为生产力工具的能力提升了。工具把"具体怎么写代码"这件事解决掉了，人要做的事，就剩两件：会用工具，和保证工具产出的质量。于是过去那些"加分项"（主动对齐、理解业务、对结果负责），现在变成了及格线。
+
+| 以前对一线开发的期望 | 现在对一线开发的期望 |
+|---|---|
+| 按文档交付准确的实现 | 独立负责一个功能块 |
+| 主动对齐模糊需求（加分项） | 能反讲场景 / 流程 / 期望结果（及格线） |
+| 顺手做点优化（加分项） | 对功能的结果和效果负责（本职） |
+
+你可以拿自己对照一下：过去接活，是不是等一份 PRD 加技术方案，照着把接口写出来、自测通过就算交付？现在接到的，更可能是"把订单退款这个模块拿下来"——没有逐行文档，你得自己把退款的几种场景、和库存账务的边界、什么算验收通过，先讲一遍，再带着 AI 去实现。写代码的时间少了，但要你想清楚、要你负责的东西，比以前多。
+
+> ℹ️ **讨论**：你们团队对一线开发的期望，现在更接近左栏还是右栏？如果还在左栏，是没必要变，还是没来得及变？
+
+### 🏭 历史上同样的事：工具一换，同一批人的重心就挪
+
+<div style="background:#E8F4FD;border-left:4px solid #2196F3;border-radius:6px;padding:14px 18px;margin:16px 0;color:#1a1a1a">
+<strong>核心观点</strong>：新工具接走"亲手做"那段，人的重心就往"定义怎么做 + 守住做得对不对"挪。这件事，历史上一再发生。
+</div>
+
+这种"生产力一跳、生产者的关注范围跟着挪"的事，历史上没发生过吗？发生过，而且不止一次。挑四个工具来看，每次的剧本都很像。
+
+- 蒸汽机 / 机械动力：体力活被机器接走，工人的重心从"自己出多大力气"，挪到"看管机器、让它别出错"。
+- 电子表格（VisiCalc / Excel，1979 年起）：这个例子程序员最有共鸣。算账的成本被打到接近零，于是大家要会计算的东西更多、更值钱了——会计不再是一格一格加总数字的人，重心挪到了做分析、做预测、回答"如果……会怎样"。
+- ATM 和银行柜员：这个例子更反直觉。点钞这件最日常的活被机器接走后，柜员的重心挪到了关系营销、卖理财和贷款——从"数钱的人"变成"和客户打交道、把客户留住的人"。
+- 福特移动装配线（1913 年）：一台 Model T 的装配，从十二个多小时压到约一个半小时。整车手艺人分成了两拨——一拨变成产线上单道工序的操作工，手上的活从"自己装"变成了"让机器装、自己检查"；另一拨变成产线设计者、管理者、质检员，管整条线怎么跑、什么算合格。
+
+| 工具 | 同一批人 | 重心从 → 挪到 |
+|---|---|---|
+| 蒸汽机 | 工人 | 自己出力气 → 看管机器、保证不出错 |
+| 电子表格 | 会计 / 记账员 | 一格格加总数字 → 做分析、做预测 |
+| ATM | 银行柜员 | 点钞 → 关系营销、卖理财和贷款 |
+| 福特装配线 | 造车的人 | 亲手装整车 → 操作工检查机器、管理者设计产线和标准 |
+
+<div style="background:#FFF3E0;border-left:4px solid #FF9800;border-radius:6px;padding:12px 16px;margin:14px 0;color:#1a1a1a">
+<strong>两个具体的数字</strong>：NPR 的 Planet Money 算过一笔账——电子表格出现后，从 1980 年算起，美国记账和核算员的岗位减少了约 40 万，但会计岗位反而增加了约 60 万。经济学家 James Bessen 统计过另一个：ATM 大规模铺开那些年，银行柜员的总数不减反增（全美约 50 万涨到近 60 万）——单个网点要的柜员从 20 降到 13，但点钞成本降了，银行就多开网点抢市场。
+</div>
+
+把福特那张表对到今天：移动装配线对应 AI coding agent，整车手艺人对应全栈自己写的工程师，产线设计者对应定义规格和调教 AI 的人，质检员对应守质量的人。
+
+我们回头看这几个例子，问一句：那些时代，因为工具变强，生产者的关注点，到底从什么变成了什么？答案挺一致——从"自己亲手做得好不好"，变成"怎么把这条线设计好、怎么定义什么算好"。
+
+接住这些变化的，从来不是死守"我手工装得最好"的手艺人，是把手艺变成产线设计和质量标准的那批人——他们知道哪里会出问题、什么算好，这恰恰是设计和优化流水线最值钱的经验。
+
+但接住变化的，不光是那群设计产线的人。流水线上还有另一群人——他们原来也是亲手装零件的手艺人，后来变成了操作和看管机器的工人，手上的活从"自己做"变成了"让机器做、自己检查"。这不正是今天开发者从"自己写"变成"让 AI 写、自己审"吗？
+
+带进去想想，那个时候的老师傅，该怎么应对？新人又该怎么应对？
+
+- 老师傅（有经验的人）：守着手写代码这门手艺，它贬值最快；把经验变成"标准和流程"——什么是好代码、哪里会埋坑、什么必须人来拍板——这些越来越值钱。
+- 新人（刚入行的人）：新工具一定是未来，得用得比谁都熟；但只会按指令出活、不问为什么，就会变成一个更听话的执行者，反而最容易被替代。
+
+最后区分一个概念：生产力提升和生产力革命，不是一层概念。革命，是连分工、激励、组织都被重排的那种。AI Coding，完全属于革命这一档——所以才值得我们花一整篇，专门聊人和团队怎么变。
+
+<div style="background:#FFF5F5;border-left:4px solid #E53935;border-radius:6px;padding:12px 16px;margin:14px 0;color:#1a1a1a">
+<strong>类比也有边界</strong>：AI 增强的是认知，不是纯体力；这条"流水线"也更流动、更能迭代，不是把人钉死在一道工序上。但核心教训成立——生产力跃迁会重构生产关系，你怎么给自己定位，决定你站在哪一边。
+</div>
+
+### 🧑‍✈️ 个人怎么应对（一）：你带着一个叫 AI 的下属
+
+到底该怎么应对这一次 AI Coding 全面进入生产？先说个人。
+
+<div style="background:#E8F4FD;border-left:4px solid #2196F3;border-radius:6px;padding:14px 18px;margin:16px 0;color:#1a1a1a">
+<strong>核心观点</strong>：重心挪到两头之后，我们其实从"工人"，变成了"带一个下属的初级管理者"——这个下属叫 AI，它手快、不知疲倦，但不懂你的业务意图，也不为结果负责。问题就一个：怎么带它。
+</div>
+
+一个管理者平时干四件事：定标准、分配任务、review 产出、为结果负责。这四件事，恰好对应我们现在要补上的活，也由此长出三个新身份。
+
+<div style="margin:14px 0;font-size:14px;max-width:100%;box-sizing:border-box">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px">
+    <span style="flex:2 1 0;min-width:0;background:#ECEFF1;color:#37474F;border:1px solid #B0BEC5;border-radius:6px;padding:8px 12px;box-sizing:border-box">定标准（什么算对）</span>
+    <span style="color:#90A4AE;font-size:18px;flex-shrink:0">→</span>
+    <span style="flex:1 1 0;min-width:0;background:#E8F0FE;color:#174ea6;border:1px solid #4285F4;border-radius:6px;padding:8px 12px;font-weight:600;box-sizing:border-box">Spec 架构师</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px">
+    <span style="flex:2 1 0;min-width:0;background:#ECEFF1;color:#37474F;border:1px solid #B0BEC5;border-radius:6px;padding:8px 12px;box-sizing:border-box">分配任务 + 调教产出</span>
+    <span style="color:#90A4AE;font-size:18px;flex-shrink:0">→</span>
+    <span style="flex:1 1 0;min-width:0;background:#E8F0FE;color:#174ea6;border:1px solid #4285F4;border-radius:6px;padding:8px 12px;font-weight:600;box-sizing:border-box">AI 调教师</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px">
+    <span style="flex:2 1 0;min-width:0;background:#ECEFF1;color:#37474F;border:1px solid #B0BEC5;border-radius:6px;padding:8px 12px;box-sizing:border-box">review 产出（像批 junior 的 PR）</span>
+    <span style="color:#90A4AE;font-size:18px;flex-shrink:0">→</span>
+    <span style="flex:1 1 0;min-width:0;background:#E8F0FE;color:#174ea6;border:1px solid #4285F4;border-radius:6px;padding:8px 12px;font-weight:600;box-sizing:border-box">质量验证师</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+    <span style="flex:2 1 0;min-width:0;background:#FFF5F5;color:#b71c1c;border:1px solid #E53935;border-radius:6px;padding:8px 12px;box-sizing:border-box">为结果负责</span>
+    <span style="color:#90A4AE;font-size:18px;flex-shrink:0">→</span>
+    <span style="flex:1 1 0;min-width:0;background:#FFF5F5;color:#b71c1c;border:1px solid #E53935;border-radius:6px;padding:8px 12px;font-weight:600;box-sizing:border-box">三个身份共同的底线</span>
+  </div>
+</div>
+
+- **Spec 架构师**——把模糊需求翻成 AI 能照做、人能照着验收的精确规格。关键不是写得多详细，是写对边界：什么该锁死，什么留给 AI 发挥。
+- **AI 调教师**——维护 Rules、prompt、工作流，让 AI 的产出稳定、贴团队口味、不重复犯同样的错。关键能力是从每次翻车里，提炼出能复用的约束（这跟训练模型是两回事）。
+- **质量验证师**——定"什么算过关"，裁决机器判不了的语义问题，最后在 PR 上按下 merge。机器能判"能不能跑"，人判"架构对不对、意图偏没偏"。
+
+这三个身份，没有一个是"写得更快"，全是定义和把关。团队里最容易被替代的，恰恰是那个只会自己写、不会管 AI 写的人——他自己就是整条链的瓶颈。
+
+### 📐 个人怎么应对（二）：哪怕不带人，也要有管理视角
+
+就算你手底下一个人都没有，现在也得用管理者的眼睛看自己的活：定标准、分配任务、review 产出、为结果负责。这套思路往上抽一层，就是"科学管理"。
+
+但"管理"这个词，得先澄清一下。很多人一听科学管理，想到的是那套不太正确的"中式管理"——形式主义、为流程而流程、不看功劳看苦劳、办公室政治、打信息差、靠人情运转。这些都不是科学管理。
+
+<div style="background:#F1F8E9;border-left:4px solid #43A047;border-radius:6px;padding:14px 18px;margin:16px 0;color:#1a1a1a">
+<strong>科学管理真正关心的</strong>：围绕组织目标，用合适的分工、流程、规则，让一群人和一群 AI，围绕同一个目标有效运转。它不关心怎么让领导觉得你很忙。
+</div>
+
+| 不是科学管理（常被误当成管理） | 是科学管理 |
+|---|---|
+| 为流程而流程的形式主义 | 围绕目标设计的分工和流程 |
+| 不看功劳看苦劳 | 用可验证的产出说话 |
+| 办公室政治、靠人情运转 | 靠规则和标准运转 |
+| 打信息差保住自己 | 把经验沉淀成大家都能用的资产 |
+
+这套区分，到了 AI 时代更要紧。为什么？因为 AI 不看你的苦劳、不跟你搞政治、不给你面子——它只按你设定的规则和标准跑。你给它定的标准清不清楚、流程稳不稳定、规则能不能复用，直接决定了它产出的质量。所以 AI 时代对管理的要求其实更高了，但要的是更科学的流程，不是更多的流程。
+
+### 🔬 个人怎么应对（三）：多问为什么——钻进去，和退一步
+
+还有一件事：多问为什么。
+
+AI 能直接给我们一个答案。但我们除了检查这个答案对不对，还得多想几步。
+
+- 钻进去（dive in）：为什么是这个答案？它是怎么得出来的？有没有别的解？
+- 退一步（step back）：退一步看整幅画——把这个答案放回全局，它是局部最优，还是整体最优？
+
+这两个动作，正好就是 Spec 架构师和质量验证师每天在做的事，也是 AI 最难替你做的。它能给答案，但"这个答案放在更大的盘子里站不站得住"，得你来判断。
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px;margin:14px 0;font-size:14px;text-align:center;max-width:100%;box-sizing:border-box">
+  <span style="flex:1 1 0;min-width:0;background:#F3E8FD;color:#6a1b9a;border:1px solid #9334E6;border-radius:8px;padding:10px 16px;box-sizing:border-box">⬇ 钻进去 dive in<br><span style="font-size:12px">这答案怎么来的？有没有别的解？</span></span>
+  <span style="background:#ECEFF1;color:#37474F;border:1px solid #B0BEC5;border-radius:8px;padding:10px 16px;font-weight:600;box-sizing:border-box;flex-shrink:0">AI 给的答案</span>
+  <span style="flex:1 1 0;min-width:0;background:#F3E8FD;color:#6a1b9a;border:1px solid #9334E6;border-radius:8px;padding:10px 16px;box-sizing:border-box">⬆ 退一步 step back<br><span style="font-size:12px">放回全局，是最优吗？</span></span>
+</div>
+
+> ℹ️ **讨论**：上一次你直接采纳了 AI 给的方案，事后回头看，如果当时多问一句"还有没有别的解"，会不会不一样？
+
+### 🏛️ 组织的旧分工，地基是三层架构
+
+聊完个人，我们再往组织这一层走。先想一个问题：过去团队分工的基础，到底是什么？
+
+<div style="background:#E8F4FD;border-left:4px solid #2196F3;border-radius:6px;padding:14px 18px;margin:16px 0;color:#1a1a1a">
+<strong>核心观点</strong>：今天这套"业务—产品—运营—前端—后端—测试—运维"的分工，地基不是惯例，而是一套很硬的技术结构——应用的三层架构（表示层 / 应用层 / 数据层）。
+</div>
+
+三层架构（Three-Tier Architecture）把一个应用分成三层：表示层负责和用户交互、显示信息；应用层是核心，用业务逻辑处理信息；数据层负责按业务场景存取数据。这套结构，直接长出了我们熟悉的分工——表示层对应前端工程师，应用层和数据层对应后端工程师；再往上，业务人员提诉求，产品经理定目标和方案，产品和业务运营管信息和操作。于是就有了业务、产品、运营、前端、后端、测试、运维这一整套分工。
+
+<div style="margin:14px 0;font-size:14px">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px;color:#37474F">
+    <span style="background:#FFF8E1;border:1px solid #FFB300;border-radius:6px;padding:6px 10px;color:#8d6e00">业务人员（提诉求）</span>
+    <span style="color:#90A4AE">→</span>
+    <span style="background:#FFF8E1;border:1px solid #FFB300;border-radius:6px;padding:6px 10px;color:#8d6e00">产品经理（定目标和方案）</span>
+    <span style="color:#90A4AE">→</span>
+    <span style="background:#FFF8E1;border:1px solid #FFB300;border-radius:6px;padding:6px 10px;color:#8d6e00">产品 / 业务运营（管信息和操作）</span>
+  </div>
+  <div style="background:#E8F0FE;border:1px solid #4285F4;border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;flex-wrap:wrap;color:#174ea6">
+    <strong>表示层 Presentation Tier</strong><span>前端工程师 · 界面与交互</span>
+  </div>
+  <div style="background:#E6F4EA;border:1px solid #34A853;border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;flex-wrap:wrap;color:#137333">
+    <strong>应用层 Application Tier</strong><span>后端工程师 · 业务逻辑</span>
+  </div>
+  <div style="background:#F3E8FD;border:1px solid #9334E6;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;flex-wrap:wrap;color:#6a1b9a">
+    <strong>数据层 Data Tier</strong><span>后端工程师 · 数据模型与存取</span>
+  </div>
+</div>
+
+这里有个问题值得停一下：表示层，为什么会长成这样？先看一个真实的桌面应用界面——
+
+<img src="assets/web_app_presentation_tier.png" style="max-width:100%;border:1px solid #ddd;border-radius:6px;margin:6px 0">
+
+<span style="font-size:12px;color:#888">（GitHub 的 issue 列表——一个典型的桌面 Web 应用界面）</span>
+
+为什么它长成这样？因为两边对不上。机器这边要的是严谨、准确、高度结构化的数据和指令；人这边却是自由、模糊地表达，又需要自然、清晰、易懂的呈现。界面（也就是表示层），干的就是夹在中间这件事——把用户模糊的输入，引导成结构化的操作；再把底层结构化的数据，用人能看懂的方式呈现出来。整套分工，本质上是围绕"把模糊的人和严谨的机器接上"建起来的。
+
+关键的转折就在这儿：GenAI 的三个新能力，恰好直接打在这层中间的活上——理解模糊信息、生成行动指令、学习知识并应答。它能直接把模糊表达转成结构化指令、转成数据访问方案，再把底层数据转回人话。界面这层原本要做的转译，被它接管了一大段。
+
+<div style="margin:14px 0;font-size:13.5px;max-width:100%;box-sizing:border-box">
+  <div style="display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;text-align:center">
+    <div style="flex:1 1 0;min-width:0;background:#ECEFF1;border:1px solid #B0BEC5;border-radius:8px;padding:12px;color:#37474F;box-sizing:border-box">
+      <strong>机器侧</strong><br><span style="font-size:12px">严谨、准确<br>高度结构化的数据和指令</span>
+    </div>
+    <div style="flex:1 1 0;min-width:0;background:#FFF3E0;border:2px solid #FF9800;border-radius:8px;padding:12px;color:#E65100;box-sizing:border-box">
+      <strong>界面（表示层）</strong><br><span style="font-size:12px">做转译 + 做引导</span>
+    </div>
+    <div style="flex:1 1 0;min-width:0;background:#ECEFF1;border:1px solid #B0BEC5;border-radius:8px;padding:12px;color:#37474F;box-sizing:border-box">
+      <strong>人侧</strong><br><span style="font-size:12px">自由、模糊地表达<br>需要清晰易懂的呈现</span>
+    </div>
+  </div>
+  <div style="margin-top:8px;background:#E8F0FE;border:1px dashed #4285F4;border-radius:8px;padding:10px;text-align:center;color:#174ea6;box-sizing:border-box;max-width:100%">
+    GenAI 三能力：理解模糊信息 · 生成行动指令 · 学习知识并应答<br>
+    <span style="font-size:12px">↑ 直接穿过中间这层，接管一大段原本由界面做的转译</span>
+  </div>
+</div>
+
+所以这一下冲击的，不是"某个岗位消失"，而是那个让整套分工成立的地基，被撬动了。地基一动，新问题就冒出来：输入可以很灵活了，那稳固的业务边界，到底画在哪？——这就需要有人专门来画，也就是前面说的 Spec 架构师。
+
+### 🤝 新的分工：按功能模块，但团队反而更要凝聚
+
+那现在呢？分工关系还是老样子吗？
+
+<div style="background:#F1F8E9;border-left:4px solid #43A047;border-radius:6px;padding:14px 18px;margin:16px 0;color:#1a1a1a">
+<strong>核心观点</strong>：地基被撬动，分工就得重排。短期看到的是一个方向，长期是另一个方向——短期往"一个人扛多个职责"走；长期不是独狼遍地，而是比现在更凝聚、更认同共同目标的团队。
+</div>
+
+先说短期。当个体能力能同时承担好几个职责的活，初期我们更倾向于按功能模块分工——一个人独立负责一个模块，从需求到实现到验证一条龙。这在招聘市场上已经能看到信号：全栈工程师、全栈产品经理（要求既懂模型原理、又能写代码、设计系统、完成部署的复合型人才），还有 FDE（Forward Deployed Engineer，前置交付工程师）——嵌进客户团队、端到端对结果负责；再往极端推，就是个人全能者，甚至 OPC（一人公司）的设想。
+
+| | 短期（已经在发生） | 长期（我的判断） |
+|---|---|---|
+| 分工方式 | 从按技术栈，转向按功能模块 | 围绕一个更大的目标重新组队 |
+| 典型形态 | 全栈工程师、全栈 PM、FDE、OPC | 多项特质组合成的凝聚团队 |
+| 人聚在一起的理由 | 一个人能独立闭环一个模块 | 认同要去哪、为什么去 |
+
+<div style="background:#FFF3E0;border-left:4px solid #FF9800;border-radius:6px;padding:12px 16px;margin:14px 0;color:#1a1a1a">
+<strong>FDE 不是空谈</strong>：这个岗位由 Palantir 首创，现在 Anthropic（见下方真实 JD）、OpenAI、Google 都在招。薪资总包几十万美元一年。至于 OPC（一人公司），听着热闹，更多是炒作。
+</div>
+
+#### 真实 JD：市场正在招的，就是这套新分工
+
+下面四个岗位——三个国内、一个海外——都是近期真实在招的。注意里面加粗的部分，几乎逐条对得上前面讲的命题。
+
+<div style="display:flex;flex-direction:column;gap:10px;margin:12px 0;font-size:13.5px">
+
+<div style="border-left:4px solid #4285F4;background:#F7FAFF;border-radius:6px;padding:12px 14px;color:#1a1a1a">
+<strong>米哈游 · 发行线（AI native 方向）· FDE</strong><br>
+用 AI 能力，把游戏发行从 0 到 1 做技术 + 产品构建。涵盖：<strong>Agent 架构设计</strong>、Prompt 工程、<strong>评估体系搭建</strong>、基础建设运维。
+</div>
+
+<div style="border-left:4px solid #34A853;background:#F6FBF7;border-radius:6px;padding:12px 14px;color:#1a1a1a">
+<strong>多点生活 · AI Harness Engineer</strong>　<span style="color:#888">35–55k · 武汉 / 北京</span><br>
+<strong>职责</strong>：设计并实现 Agent Harness 架构（编排、记忆管理、工具调用、重试/回滚机制）；构建 <strong>Agent 评估体系</strong>（离线评测、线上监控、全链路追踪）；设计多 Agent 协作框架（规划器/生成器/评估器的职责划分与任务交接）；制定 <strong>Guardrails 规范</strong>（结构化输出约束、沙箱隔离、规则校验）。<br>
+<strong>要求</strong>：以<strong>指挥 AI 生成代码与交付物为核心工作模式，不手动编码</strong>；<strong>Spec-Driven Design + TDD 实战经验</strong>；Agent 评估方法论与 Eval Pipeline 端到端落地能力。
+</div>
+
+<div style="border-left:4px solid #9334E6;background:#FBF8FE;border-radius:6px;padding:12px 14px;color:#1a1a1a">
+<strong>浮点奇迹 · AI Agent 系统研发（OS 内核方向）</strong>　<span style="color:#888">20–40k · 北京</span><br>
+<strong>职责</strong>：构建 Agentic OS 内核——Agent 生命周期管理、任务调度、事件总线、循环触发机制；Skills 生态基础设施——热插拔、版本化管理、安全调用的服务化框架；人机交互与干预机制——Human-in-the-loop、关键决策点 Confirmation、用户自定义 Hooks。<br>
+<strong>要求</strong>：对 <strong>Spec Coding 范式</strong>有深刻理解，有使用 Claude Code 闭环 agentic coding loop 的经历；<strong>AI 杠杆思维</strong>——深刻理解不同大模型的技术边界，将各开发环节效率拉到极致；<strong>"不仅关注怎么做，更关注为什么"</strong>。
+</div>
+
+<div style="border-left:4px solid #E53935;background:#FFF5F5;border-radius:6px;padding:12px 14px;color:#1a1a1a">
+<strong>Anthropic · Forward Deployed Engineer, Applied AI</strong>　<span style="color:#888">Boston / NYC / SF / Seattle / DC</span><br>
+<strong>职责</strong>：嵌入战略客户现场，<strong>端到端交付基于 Claude 的生产级 AI 应用</strong>；交付 MCP server、sub-agent、agent skills 等技术产物；白手套级部署支持；将可复用的部署模式沉淀回产品和工程团队。<br>
+<strong>要求</strong>：3 年以上 FDE 或 SWE 咨询经验；<strong>LLM 生产经验（prompt engineering、agent 开发、评估框架、规模化部署）</strong>；Python 精通；高自主性——"在模糊中导航，在复杂组织中做事"。<br>
+<span style="font-size:11px;color:#888">来源：Anthropic 官方招聘页 · greenhouse.io · 2026年6月实时抓取 → <a href="https://job-boards.greenhouse.io/anthropic/jobs/4985877008" style="color:#1565C0">查看完整 JD</a></span>
+</div>
+
+</div>
+
+把这些 JD 里的原话，对回前面的命题：
+
+| JD 里的原话 | 对应讲义里的命题 |
+|---|---|
+| "以指挥 AI 生成代码与交付物为核心…不手动编码" | 重心从"写"挪到"指挥 + 审" |
+| "Spec-Driven Design 与 TDD 实战经验" | 定义（spec）+ 验收（test）两头 |
+| "Agent 评估体系 / Guardrails 规范" | 三个新身份里的质量验证师 |
+| "不仅关注怎么做，更关注为什么" | 多问为什么（dive in / step back） |
+| "AI 杠杆思维…将各开发环节效率拉到极致" | AI 是个人特质的放大器 |
+| FDE · 独立负责一条线、端到端（米哈游） | 按功能模块分工 |
+| "嵌入客户现场，端到端交付生产级 AI 应用"（Anthropic FDE） | 同上：端到端负责，从原型到生产一条龙 |
+| "在模糊中导航，在复杂组织中做事"（Anthropic FDE） | 个人要有管理视角：面对模糊命题，不是等任务分发 |
+
+换句话说，这套分工不是推演出来的，是市场已经在按它招人了。而且不只是国内——硅谷最头部的 AI 公司，招的也是同一套能力。
+
+长期看呢？我不认为 OPC 是个合适的命题——那更多是炒作出来的概念。
+
+理由很朴素：个人的精力是有限的，个人的特质和特长也是不一样的。AI 是个人特质的放大器——它会把你本来擅长的那一面放得更大，但它放大的，始终是"你这一个人"。而团队的目标、团队的命题，是一个更高层面的复合命题，需要多项特质组合而成。一个被放大的个体，接不住这样一个复合命题。
+
+所以，我不认为未来的组织，会是一个强调 OPC、强调个人能力的独狼人群聚集地。恰恰相反——它会比现在更加凝聚，更强调对组织目标的认同、对组织文化和价值观的认同。它也不会是一条"任务分发、机械执行"的流水线。因为执行那一段被 AI 接走了，人聚在一起的理由，就从"被分到同一批任务"，变成了"共同认定要去哪、为什么去"。
+
+<div style="background:#F1F8E9;border-left:4px solid #43A047;border-radius:6px;padding:14px 18px;margin:16px 0;color:#1a1a1a">
+AI 放大的是个人；团队要接的，是一个个人接不住的复合命题。
+</div>
+
+#### 两个真实案例：小团队，不是独狼
+
+<div style="background:#F1F8E9;border-left:4px solid #43A047;border-radius:6px;padding:12px 16px;margin:12px 0;color:#1a1a1a">
+<strong>Cursor（Anysphere）</strong>：到 2026 年初约 50 人，ARR 做到约 20 亿美元，人均产出大概是软件史上最高的之一。但它不是一群各干各的独狼——是一个很小、却高度凝聚的团队。这恰好是我说的长期形态：<strong>不是 OPC 遍地，是小而凝聚。</strong>
+</div>
+
+<div style="background:#E8F4FD;border-left:4px solid #2196F3;border-radius:6px;padding:12px 16px;margin:12px 0;color:#1a1a1a">
+<strong>Shopify</strong>：CEO 在 2025 年 4 月发了封内部信——"会用 AI"成了对每个人的基本期望；一个团队想加人，得先证明这件事 AI 干不了。你看，"会用 AI"从加分项变成了门槛，这正是前面说的"加分项变及格线"在组织层面的版本。
+</div>
+
+### 🎯 几个可以用的自查
+
+把这条线收一下。
+
+生产力的核心变化：重心从"写"挪到了"定义 + 验收"两头。这两头原本分散在好几个角色手里，所以要重构的是一整条链。
+
+历史上每次这样的革命，接住变化的都是把"手艺"变成"标准和流程"的那批人。落到个人，要换上管理视角、把科学管理和形式主义分清楚、对 AI 的答案多钻进去也多退一步。落到组织，短期会按功能模块走、冒出超级个体，长期则会回到更凝聚、更认同共同目标的团队。
+
+下次再讨论"我们团队该怎么变"，可以挨个问这五个问题：
+
+1. 生产力到底哪儿变了？（先列具体变在哪）
+2. 什么技能在贬值，什么在增值？
+3. 现在的分工，是按技术栈，还是按功能模块？
+4. 那些能复用的东西（Rules、spec、踩过的坑），在脑子里，还是在文件里？
+5. 我们聚在一起，是因为认同要去哪，还是只因为被分到了同一批任务？
+
+生产力已经变了。剩下的问题只有一个——你打算先动哪一处？
